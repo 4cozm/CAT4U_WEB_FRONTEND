@@ -1,69 +1,64 @@
 name: Build and Upload Static Export
 
 on:
-  push:
-    branches: [Dev]
-  pull_request:
-    branches: [Dev]
+    push:
+        branches: [Dev]
+    pull_request:
+        branches: [Dev]
 
 jobs:
-  build-and-export:
-    runs-on: ubuntu-latest
+    build-and-export:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: 'pnpm'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Build static export
-        run: pnpm build
+            - name: Build static export
+              run: pnpm build
 
-      - name: Set export timestamp
-        id: timestamp
-        run: echo "VALUE=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+            - name: Set export timestamp
+              id: timestamp
+              run: echo "VALUE=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
 
-      - name: Upload export artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-export-${{ steps.timestamp.outputs.VALUE }}
-          path: out/
+            - name: Upload export artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: frontend-export-${{ steps.timestamp.outputs.VALUE }}
+                  path: out/
 
-      - name: Notify Discord on Success
-        if: success()
-        run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"content\": \"웹 프론트 빌드 성공이다냥: frontend-export-${{ steps.timestamp.outputs.VALUE }}\"}" \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-      - name: Notify Discord on Failure
-        if: failure()
-        run: |
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"content\": \"웹 프론트 빌드 실패다냥 벌레갓은 놈: Dev 브랜치 빌드 중 오류 발생\"}" \
-               ${{ secrets.DISCORD_WEBHOOK_URL }}
-
-<<<<<<< Updated upstream
-      # TODO: 빌드 성공 후 백엔드 서버로 API 요청 보내서
-      #       아티팩트를 최신화 하도록 구현 필요
-=======
-            - name: Trigger Backend Artifact Update
+            - name: Notify Discord on Success
+              if: success()
               run: |
-                  curl -X POST https://web.cat4u.store/api/github/downloadLatestArtifact
-                      -H "x-api-key: ${{ secrets.ARTIFACT_API_KEY }}" \
-                      -H "Content-Type: application/json"
->>>>>>> Stashed changes
+                  curl -H "Content-Type: application/json" \
+                       -X POST \
+                       -d "{\"content\": \"웹 프론트 빌드 성공이다냥: frontend-export-${{ steps.timestamp.outputs.VALUE }}\"}" \
+                       ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+            - name: Notify Discord on Failure
+              if: failure()
+              run: |
+                  curl -H "Content-Type: application/json" \
+                       -X POST \
+                       -d "{\"content\": \"웹 프론트 빌드 실패다냥 벌레갓은 놈: Dev 브랜치 빌드 중 오류 발생\"}" \
+                       ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+                    - name: Trigger Backend Artifact Update
+                      run: |
+                          curl -X POST https://web.cat4u.store/api/github/downloadLatestArtifact
+                              -H "x-api-key: ${{ secrets.ARTIFACT_API_KEY }}" \
+                              -H "Content-Type: application/json"
