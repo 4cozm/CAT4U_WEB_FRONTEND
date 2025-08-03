@@ -3,245 +3,250 @@
 import type React from "react"
 
 import { useState } from "react"
-import Header from "@/components/header"
-import MarkdownEditor from "@/components/markdown-editor"
+import Link from "next/link"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Send, Save, ShoppingCart, AlertTriangle } from "lucide-react"
-import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ArrowLeft, Plus, X } from "lucide-react"
 
 export default function MarketWritePage() {
   const [title, setTitle] = useState("")
-  const [category, setCategory] = useState("")
-  const [tradeType, setTradeType] = useState("")
+  const [content, setContent] = useState("")
   const [price, setPrice] = useState("")
   const [location, setLocation] = useState("")
-  const [content, setContent] = useState(`# 거래 상품 정보
+  const [category, setCategory] = useState("")
+  const [tags, setTags] = useState<string[]>([])
+  const [newTag, setNewTag] = useState("")
+  const [isPreview, setIsPreview] = useState(false)
 
-## 상품 설명
-판매/구매하려는 아이템에 대한 상세한 설명을 작성하세요.
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim()) && tags.length < 5) {
+      setTags([...tags, newTag.trim()])
+      setNewTag("")
+    }
+  }
 
-## 거래 조건
-- **가격**: ISK 또는 교환 조건
-- **위치**: 거래 장소
-- **연락처**: 게임 내 메일 또는 연락 방법
-
-## 추가 정보
-- 아이템 상태, 수량 등 추가 정보를 기재하세요.
-`)
-  const { toast } = useToast()
-  const router = useRouter()
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter((tag) => tag !== tagToRemove))
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!title.trim() || !category || !tradeType || !content.trim()) {
-      toast({
-        title: "오류",
-        description: "필수 필드를 모두 입력해주세요.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "성공",
-      description: "거래글이 성공적으로 작성되었습니다.",
-    })
-
-    setTimeout(() => {
-      router.push("/market")
-    }, 1500)
-  }
-
-  const handleSaveDraft = () => {
-    toast({
-      title: "임시저장 완료",
-      description: "작성 중인 내용이 임시저장되었습니다.",
-    })
+    alert("정적 사이트에서는 실제 저장이 불가능합니다.")
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <Header />
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              asChild
-              variant="outline"
-              className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent"
-            >
-              <Link href="/market">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                돌아가기
-              </Link>
-            </Button>
-            <h1 className="text-3xl font-bold text-white">거래글 작성</h1>
-          </div>
-          <Button
-            onClick={handleSaveDraft}
-            variant="outline"
-            className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white bg-transparent"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            임시저장
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link href="/market/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            장터 목록으로
           </Button>
-        </div>
-
-        <div className="grid gap-8 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="border-slate-700 bg-slate-800/50">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  거래 정보
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-slate-300 mb-2 block">거래 유형 *</label>
-                    <Select value={tradeType} onValueChange={setTradeType}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                        <SelectValue placeholder="거래 유형 선택" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-700 border-slate-600">
-                        <SelectItem value="판매" className="text-white">
-                          <Badge className="bg-green-600 text-white">판매</Badge>
-                        </SelectItem>
-                        <SelectItem value="구매" className="text-white">
-                          <Badge className="bg-blue-600 text-white">구매</Badge>
-                        </SelectItem>
-                        <SelectItem value="교환" className="text-white">
-                          <Badge className="bg-purple-600 text-white">교환</Badge>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-slate-300 mb-2 block">카테고리 *</label>
-                    <Select value={category} onValueChange={setCategory}>
-                      <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                        <SelectValue placeholder="카테고리 선택" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-slate-700 border-slate-600">
-                        <SelectItem value="함선" className="text-white">
-                          함선
-                        </SelectItem>
-                        <SelectItem value="모듈" className="text-white">
-                          모듈
-                        </SelectItem>
-                        <SelectItem value="스킬북" className="text-white">
-                          스킬북
-                        </SelectItem>
-                        <SelectItem value="블루프린트" className="text-white">
-                          블루프린트
-                        </SelectItem>
-                        <SelectItem value="자원" className="text-white">
-                          자원
-                        </SelectItem>
-                        <SelectItem value="기타" className="text-white">
-                          기타
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-slate-300 mb-2 block">제목 *</label>
-                  <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="예: [판매] 라틴 급 배틀크루저 완전체"
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label className="text-sm font-medium text-slate-300 mb-2 block">가격 (ISK)</label>
-                    <Input
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="예: 500,000,000 ISK"
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-slate-300 mb-2 block">거래 위치</label>
-                    <Input
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                      placeholder="예: 지타 4-4 스테이션"
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <MarkdownEditor
-              value={content}
-              onChange={setContent}
-              placeholder="거래 상세 내용을 작성하세요..."
-              minHeight="400px"
-            />
-
-            <Card className="border-slate-700 bg-slate-800/50">
-              <CardContent className="pt-6">
-                <Button
-                  onClick={handleSubmit}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  거래글 작성 완료
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="border-slate-700 bg-slate-800/50">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-400" />
-                  거래 안내
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h4 className="text-orange-400 font-semibold mb-2">안전한 거래를 위해</h4>
-                  <ul className="text-slate-300 text-sm space-y-1">
-                    <li>• 게임 내 계약 시스템 이용</li>
-                    <li>• 직거래 시 신뢰할 수 있는 중개인 활용</li>
-                    <li>• 사기 의심 시 즉시 신고</li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-orange-400 font-semibold mb-2">작성 가이드</h4>
-                  <ul className="text-slate-300 text-sm space-y-1">
-                    <li>• 제목에 거래 유형 명시</li>
-                    <li>• 정확한 아이템명과 수량 기재</li>
-                    <li>• 현재 시세 확인 후 가격 설정</li>
-                    <li>• 연락 방법 명확히 기재</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        </Link>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">판매글 등록</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title">제목</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="판매할 아이템의 제목을 입력하세요"
+                required
+              />
+            </div>
+
+            {/* Category and Price */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>카테고리</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ship">함선</SelectItem>
+                    <SelectItem value="module">모듈</SelectItem>
+                    <SelectItem value="blueprint">블루프린트</SelectItem>
+                    <SelectItem value="skill">스킬북</SelectItem>
+                    <SelectItem value="other">기타</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="price">가격</Label>
+                <Input
+                  id="price"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="예: 1.5B ISK"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location">위치</Label>
+              <Input
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="예: Jita 4-4, Amarr Trade Hub"
+                required
+              />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <Label>태그 (최대 5개)</Label>
+              <div className="flex space-x-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="태그 입력"
+                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                />
+                <Button type="button" onClick={addTag} disabled={tags.length >= 5}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag) => (
+                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="ml-1 hover:text-red-500">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">상세 설명</Label>
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant={!isPreview ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsPreview(false)}
+                  >
+                    편집
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={isPreview ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setIsPreview(true)}
+                  >
+                    미리보기
+                  </Button>
+                </div>
+              </div>
+
+              {!isPreview ? (
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="판매할 아이템에 대한 상세한 설명을 마크다운 형식으로 작성하세요..."
+                  className="min-h-[400px]"
+                  required
+                />
+              ) : (
+                <div className="min-h-[400px] p-4 border rounded-md bg-gray-50">
+                  <div className="prose max-w-none">
+                    {content ? (
+                      content.split("\n").map((line, index) => {
+                        if (line.startsWith("# ")) {
+                          return (
+                            <h1 key={index} className="text-2xl font-bold mt-6 mb-4">
+                              {line.substring(2)}
+                            </h1>
+                          )
+                        } else if (line.startsWith("## ")) {
+                          return (
+                            <h2 key={index} className="text-xl font-semibold mt-4 mb-3">
+                              {line.substring(3)}
+                            </h2>
+                          )
+                        } else if (line.startsWith("### ")) {
+                          return (
+                            <h3 key={index} className="text-lg font-medium mt-3 mb-2">
+                              {line.substring(4)}
+                            </h3>
+                          )
+                        } else if (line.startsWith("- ")) {
+                          return (
+                            <li key={index} className="ml-4">
+                              {line.substring(2)}
+                            </li>
+                          )
+                        } else if (line.startsWith("**") && line.endsWith("**")) {
+                          return (
+                            <p key={index} className="font-semibold mb-2">
+                              {line.slice(2, -2)}
+                            </p>
+                          )
+                        } else if (line.trim() === "") {
+                          return <br key={index} />
+                        } else {
+                          return (
+                            <p key={index} className="mb-2">
+                              {line}
+                            </p>
+                          )
+                        }
+                      })
+                    ) : (
+                      <p className="text-gray-500">미리보기할 내용이 없습니다.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Help */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium mb-2">판매글 작성 가이드</h4>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>• 아이템의 상태와 특징을 정확히 기술하세요</p>
+                <p>• 가격은 현재 시세를 반영하여 책정하세요</p>
+                <p>• 거래 조건과 결제 방법을 명시하세요</p>
+                <p>• 스크린샷이나 증빙 자료가 있으면 더 좋습니다</p>
+                <p>• 사기 거래 방지를 위해 안전한 거래를 권장합니다</p>
+              </div>
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex space-x-4">
+              <Button type="submit" className="flex-1">
+                판매글 등록
+              </Button>
+              <Button type="button" variant="outline">
+                임시저장
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

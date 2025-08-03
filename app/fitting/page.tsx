@@ -1,223 +1,111 @@
-"use client"
-
-import { useState, useMemo } from "react"
-import Header from "@/components/header"
-import PostCardView from "@/components/post-card-view"
-import PostListView from "@/components/post-list-view"
+import Link from "next/link"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Plus, Zap, Search, Grid3X3, List } from "lucide-react"
-import Link from "next/link"
+import { Heart, MessageSquare, Eye, Plus, Search, Copy } from "lucide-react"
 
-const categories = ["전체", "PVP", "PVE", "피팅 피드백"]
-
-const fittingPosts = [
+const fittings = [
   {
     id: 1,
-    title: "솔로 PVP 크루저 피팅 가이드",
-    category: "PVP",
-    author: "PVPMaster",
-    likes: 67,
-    comments: 23,
-    createdAt: "1일 전",
-    excerpt: "솔로 PVP에 최적화된 크루저 피팅들을 소개합니다. 비용 대비 효율이 뛰어난 빌드들입니다.",
+    title: "PvP 프리깃 피팅 추천",
+    content: "솔로 PvP에 적합한 프리깃 피팅들을 소개합니다. Rifter, Merlin, Tormentor 등의 T1 프리깃부터...",
+    author: "PvP_Master",
+    createdAt: "2024-01-13",
+    views: 2100,
+    likes: 78,
+    comments: 25,
+    clipboards: 8,
+    tags: ["PvP", "프리깃", "솔로"],
   },
   {
     id: 2,
-    title: "인커션 최적화 피팅",
-    category: "PVE",
-    author: "IncursionPro",
-    likes: 89,
-    comments: 31,
-    createdAt: "2일 전",
-    excerpt: "인커션 사이트에서 최대 DPS와 생존성을 보장하는 피팅 가이드입니다.",
-  },
-  {
-    id: 3,
-    title: "초보자 피팅 검토 요청",
-    category: "피팅 피드백",
-    author: "NewPilot123",
-    likes: 12,
-    comments: 18,
-    createdAt: "3일 전",
-    excerpt: "처음 만든 PVE 피팅입니다. 개선점이 있다면 조언 부탁드립니다.",
-  },
-  {
-    id: 4,
-    title: "플릿 PVP 로지스틱 피팅",
-    category: "PVP",
-    author: "LogiBro",
+    title: "미션용 배틀쉽 피팅 모음",
+    content: "Level 4 미션을 효율적으로 수행할 수 있는 배틀쉽 피팅들입니다...",
+    author: "Mission_Runner",
+    createdAt: "2024-01-12",
+    views: 1560,
     likes: 45,
-    comments: 14,
-    createdAt: "4일 전",
-    excerpt: "대규모 플릿전에서 사용하는 로지스틱 피팅들을 정리했습니다.",
-  },
-  {
-    id: 5,
-    title: "미션 러닝 최적화 피팅",
-    category: "PVE",
-    author: "MissionRunner",
-    likes: 34,
-    comments: 11,
-    createdAt: "5일 전",
-    excerpt: "레벨 4 미션을 효율적으로 클리어하기 위한 피팅 가이드입니다.",
-  },
-  {
-    id: 6,
-    title: "FW 프리깃 피팅 모음",
-    category: "PVP",
-    author: "FWVeteran",
-    likes: 52,
-    comments: 19,
-    createdAt: "6일 전",
-    excerpt: "팩션 워페어에서 사용하기 좋은 프리깃 피팅들을 모았습니다.",
-  },
-  {
-    id: 7,
-    title: "아비설 데드스페이스 피팅",
-    category: "PVE",
-    author: "AbyssalExplorer",
-    likes: 41,
-    comments: 16,
-    createdAt: "1주일 전",
-    excerpt: "아비설 데드스페이스 탐험을 위한 특화 피팅을 소개합니다.",
-  },
-  {
-    id: 8,
-    title: "드레드노트 피팅 피드백",
-    category: "피팅 피드백",
-    author: "CapitalPilot",
-    likes: 28,
-    comments: 22,
-    createdAt: "1주일 전",
-    excerpt: "첫 드레드노트 피팅을 만들어봤습니다. 검토 부탁드립니다.",
+    comments: 18,
+    clipboards: 6,
+    tags: ["미션", "배틀쉽", "PvE"],
   },
 ]
 
 export default function FittingPage() {
-  const [selectedCategory, setSelectedCategory] = useState("전체")
-  const [viewMode, setViewMode] = useState<"card" | "list">("card")
-  const [searchQuery, setSearchQuery] = useState("")
-
-  // 필터링된 포스트
-  const filteredPosts = useMemo(() => {
-    let posts =
-      selectedCategory === "전체" ? fittingPosts : fittingPosts.filter((post) => post.category === selectedCategory)
-
-    if (searchQuery.trim()) {
-      posts = posts.filter(
-        (post) =>
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.author.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-    }
-
-    return posts
-  }, [selectedCategory, searchQuery])
-
   return (
-    <div className="min-h-screen bg-slate-900 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-violet-900/20 to-slate-900 opacity-30"></div>
-      <Header />
-
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        {/* 섹션 헤더 */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">피팅</h1>
-          <p className="text-slate-300 flex items-center justify-center gap-2">
-            <Zap className="h-4 w-4" />
-            전투 피팅과 최적화 가이드를 공유하는 공간
-          </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">피팅</h1>
+          <p className="text-gray-600">다양한 상황에 맞는 함선 피팅을 공유하세요</p>
         </div>
+        <Link href="/fitting/write/">
+          <Button className="mt-4 sm:mt-0">
+            <Plus className="w-4 h-4 mr-2" />
+            피팅 공유
+          </Button>
+        </Link>
+      </div>
 
-        {/* 검색 및 글 작성 버튼 */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="피팅 제목, 내용, 작성자 검색..."
-              className="bg-slate-700 border-slate-600 text-white pl-10"
-            />
-          </div>
-          <div className="flex items-center gap-3">
-            {/* 뷰 모드 전환 */}
-            <div className="flex rounded-lg border border-slate-600 overflow-hidden bg-slate-800">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode("card")}
-                className={`rounded-none px-4 py-2 border-0 ${
-                  viewMode === "card"
-                    ? "bg-violet-600 text-white hover:bg-violet-700"
-                    : "bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white"
-                }`}
-              >
-                <Grid3X3 className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">카드</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className={`rounded-none px-4 py-2 border-0 ${
-                  viewMode === "list"
-                    ? "bg-violet-600 text-white hover:bg-violet-700"
-                    : "bg-slate-700 text-slate-200 hover:bg-slate-600 hover:text-white"
-                }`}
-              >
-                <List className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">리스트</span>
-              </Button>
-            </div>
-            <Button asChild className="bg-violet-600 hover:bg-violet-700 shadow-lg">
-              <Link href="/fitting/write">
-                <Plus className="mr-2 h-4 w-4" />글 작성
-              </Link>
-            </Button>
-          </div>
+      {/* Search */}
+      <div className="mb-8">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input placeholder="피팅 검색..." className="pl-10" />
         </div>
+      </div>
 
-        {/* 카테고리 필터 */}
-        <div className="mb-8 flex flex-wrap gap-2">
-          {categories.map((category) => (
-            <Button
-              key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
-              onClick={() => setSelectedCategory(category)}
-              className={
-                selectedCategory === category
-                  ? "bg-violet-600 hover:bg-violet-700 text-white shadow-lg"
-                  : "border-slate-600 text-slate-200 hover:bg-slate-700 hover:text-white bg-slate-800/50"
-              }
-            >
-              {category}
-            </Button>
-          ))}
-        </div>
+      {/* Fitting List */}
+      <div className="space-y-6">
+        {fittings.map((fitting) => (
+          <Card key={fitting.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex flex-col space-y-4">
+                <div>
+                  <Link href={`/fitting/${fitting.id}/`}>
+                    <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-2">
+                      {fitting.title}
+                    </h2>
+                  </Link>
+                  <p className="text-gray-600 mb-3 line-clamp-2">{fitting.content}</p>
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {fitting.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
 
-        {/* 결과 표시 */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-slate-300 text-sm">
-            {searchQuery ? `"${searchQuery}" 검색 결과: ` : ""}총 {filteredPosts.length}개의 피팅
-          </p>
-        </div>
-
-        {/* 글 리스트 */}
-        {filteredPosts.length > 0 ? (
-          viewMode === "card" ? (
-            <PostCardView posts={filteredPosts} showDoctrineLogos={false} />
-          ) : (
-            <PostListView posts={filteredPosts} showDoctrineLogos={false} />
-          )
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-slate-300 text-lg mb-2">검색 결과가 없습니다</p>
-            <p className="text-slate-400 text-sm">다른 검색어를 시도해보세요</p>
-          </div>
-        )}
+                <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="flex items-center space-x-4">
+                    <span>by {fitting.author}</span>
+                    <span>{fitting.createdAt}</span>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <span className="flex items-center">
+                      <Eye className="w-4 h-4 mr-1" />
+                      {fitting.views}
+                    </span>
+                    <span className="flex items-center">
+                      <Heart className="w-4 h-4 mr-1" />
+                      {fitting.likes}
+                    </span>
+                    <span className="flex items-center">
+                      <MessageSquare className="w-4 h-4 mr-1" />
+                      {fitting.comments}
+                    </span>
+                    <span className="flex items-center text-blue-600">
+                      <Copy className="w-4 h-4 mr-1" />
+                      {fitting.clipboards}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   )
