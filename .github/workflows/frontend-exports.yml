@@ -24,10 +24,10 @@ jobs:
         run: npm install -g pnpm
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build static export
-        run: pnpm next:build
+        run: pnpm build
 
       - name: Set export timestamp
         id: timestamp
@@ -38,3 +38,23 @@ jobs:
         with:
           name: frontend-export-${{ steps.timestamp.outputs.VALUE }}
           path: out/
+
+      # 성공 시 Webhook
+      - name: Notify Discord on Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"웹 프론트 빌드 성공이다냥: frontend-export-${{ steps.timestamp.outputs.VALUE }}\"}" \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # 실패 시 Webhook
+      - name: Notify Discord on Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"웹 프론트 빌드 실패다냥 벌레갓은 놈: dev 브랜치 빌드 중 오류 발생\"}" \
+               ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # TODO : 백엔드 서버로 API 요청 보내서 아티펙트를 최신화 하도록
