@@ -57,5 +57,13 @@ jobs:
                -d "{\"content\": \"웹 프론트 빌드 실패다냥 벌레갓은 놈: Dev 브랜치 빌드 중 오류 발생\"}" \
                ${{ secrets.DISCORD_WEBHOOK_URL }}
 
+<<<<<<< Updated upstream
       # TODO: 빌드 성공 후 백엔드 서버로 API 요청 보내서
       #       아티팩트를 최신화 하도록 구현 필요
+=======
+            - name: Trigger Backend Artifact Update
+              run: |
+                  curl -X POST https://web.cat4u.store/api/github/downloadLatestArtifact
+                      -H "x-api-key: ${{ secrets.ARTIFACT_API_KEY }}" \
+                      -H "Content-Type: application/json"
+>>>>>>> Stashed changes
