@@ -1,9 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Heart, MessageSquare, Eye, Plus, Search } from "lucide-react"
+import { Heart, MessageSquare, Eye, Plus, Search } from 'lucide-react'
 
 // 정적 데이터
 const guides = [
@@ -43,6 +46,7 @@ const guides = [
 ]
 
 export default function GuidePage() {
+  const [viewMode, setViewMode] = useState<1 | 2>(1)
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200">
@@ -71,20 +75,110 @@ export default function GuidePage() {
           </div>
         </div>
 
+        {/* View Mode Toggle */}
+        <div className="mb-6 flex justify-end">
+          <div className="flex space-x-2">
+            <Button
+              variant={viewMode === 1 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode(1)}
+              className={viewMode === 1 ? "bg-blue-600 hover:bg-blue-700" : "border-gray-200 bg-transparent"}
+            >
+              상세 보기
+            </Button>
+            <Button
+              variant={viewMode === 2 ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode(2)}
+              className={viewMode === 2 ? "bg-blue-600 hover:bg-blue-700" : "border-gray-200 bg-transparent"}
+            >
+              간략 보기
+            </Button>
+          </div>
+        </div>
+
         {/* Guide List */}
-        <div className="space-y-4">
-          {guides.map((guide) => (
-            <Card key={guide.id} className="card-hover bg-white border-gray-200">
-              <CardContent className="p-6">
-                <div className="flex flex-col space-y-4">
-                  <div>
-                    <Link href={`/guide/${guide.id}/`}>
-                      <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-3">
-                        {guide.title}
-                      </h2>
-                    </Link>
-                    <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">{guide.content}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
+        {viewMode === 1 ? (
+          // 기존 상세 보기 (현재 코드 유지)
+          <div className="space-y-4">
+            {guides.map((guide) => (
+              <Card key={guide.id} className="card-hover bg-white border-gray-200">
+                <CardContent className="p-6">
+                  <div className="flex flex-col space-y-4">
+                    <div>
+                      <Link href={`/guide/${guide.id}/`}>
+                        <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-3">
+                          {guide.title}
+                        </h2>
+                      </Link>
+                      <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">{guide.content}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {guide.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-4">
+                        <span className="font-medium">by {guide.author}</span>
+                        <span>{guide.createdAt}</span>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <span className="flex items-center">
+                          <Eye className="w-4 h-4 mr-1" />
+                          {guide.views}
+                        </span>
+                        <span className="flex items-center">
+                          <Heart className="w-4 h-4 mr-1" />
+                          {guide.likes}
+                        </span>
+                        <span className="flex items-center">
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          {guide.comments}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          // 새로운 간략 보기
+          <div className="space-y-2">
+            {guides.map((guide) => (
+              <Card key={guide.id} className="card-hover bg-white border-gray-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <Link href={`/guide/${guide.id}/`}>
+                        <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors mb-1">
+                          {guide.title}
+                        </h3>
+                      </Link>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>by {guide.author}</span>
+                        <span>{guide.createdAt}</span>
+                        <div className="flex items-center space-x-3">
+                          <span className="flex items-center">
+                            <Eye className="w-3 h-3 mr-1" />
+                            {guide.views}
+                          </span>
+                          <span className="flex items-center">
+                            <Heart className="w-3 h-3 mr-1" />
+                            {guide.likes}
+                          </span>
+                          <span className="flex items-center">
+                            <MessageSquare className="w-3 h-3 mr-1" />
+                            {guide.comments}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1 ml-4">
                       {guide.tags.map((tag) => (
                         <Badge key={tag} variant="secondary" className="text-xs bg-gray-100 text-gray-700">
                           {tag}
@@ -92,32 +186,11 @@ export default function GuidePage() {
                       ))}
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
-                    <div className="flex items-center space-x-4">
-                      <span className="font-medium">by {guide.author}</span>
-                      <span>{guide.createdAt}</span>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <span className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        {guide.views}
-                      </span>
-                      <span className="flex items-center">
-                        <Heart className="w-4 h-4 mr-1" />
-                        {guide.likes}
-                      </span>
-                      <span className="flex items-center">
-                        <MessageSquare className="w-4 h-4 mr-1" />
-                        {guide.comments}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Pagination */}
         <div className="flex justify-center mt-12">
