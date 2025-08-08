@@ -1,9 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Heart, MessageSquare, Eye, Plus, Search, DollarSign } from "lucide-react"
+import { Heart, MessageSquare, Eye, Plus, Search, DollarSign } from 'lucide-react'
 
 const marketItems = [
   {
@@ -35,6 +38,7 @@ const marketItems = [
 ]
 
 export default function MarketPage() {
+  const [viewMode, setViewMode] = useState<1 | 2>(1)
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
@@ -58,62 +62,133 @@ export default function MarketPage() {
         </div>
       </div>
 
+      {/* View Mode Toggle */}
+      <div className="mb-6 flex justify-end">
+        <div className="flex space-x-2">
+          <Button
+            variant={viewMode === 1 ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode(1)}
+            className={viewMode === 1 ? "bg-blue-600 hover:bg-blue-700" : "border-gray-200 bg-transparent"}
+          >
+            상세 보기
+          </Button>
+          <Button
+            variant={viewMode === 2 ? "default" : "outline"}
+            size="sm"
+            onClick={() => setViewMode(2)}
+            className={viewMode === 2 ? "bg-blue-600 hover:bg-blue-700" : "border-gray-200 bg-transparent"}
+          >
+            간략 보기
+          </Button>
+        </div>
+      </div>
+
       {/* Market List */}
-      <div className="space-y-6">
-        {marketItems.map((item) => (
-          <Card key={item.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex flex-col space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
+      {viewMode === 1 ? (
+        // 기존 상세 보기
+        <div className="space-y-6">
+          {marketItems.map((item) => (
+            <Card key={item.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Link href={`/market/${item.id}/`}>
+                        <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                          {item.title}
+                        </h2>
+                      </Link>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant={item.status === "판매중" ? "default" : "secondary"}>{item.status}</Badge>
+                        <div className="flex items-center text-green-600 font-semibold">
+                          <DollarSign className="w-4 h-4 mr-1" />
+                          {item.price}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mb-3 line-clamp-2">{item.content}</p>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {item.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center space-x-4">
+                      <span>by {item.author}</span>
+                      <span>{item.createdAt}</span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <span className="flex items-center">
+                        <Eye className="w-4 h-4 mr-1" />
+                        {item.views}
+                      </span>
+                      <span className="flex items-center">
+                        <Heart className="w-4 h-4 mr-1" />
+                        {item.likes}
+                      </span>
+                      <span className="flex items-center">
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        {item.comments}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        // 새로운 간략 보기
+        <div className="space-y-2">
+          {marketItems.map((item) => (
+            <Card key={item.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
                     <Link href={`/market/${item.id}/`}>
-                      <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                      <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600 transition-colors mb-1">
                         {item.title}
-                      </h2>
+                      </h3>
                     </Link>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant={item.status === "판매중" ? "default" : "secondary"}>{item.status}</Badge>
-                      <div className="flex items-center text-green-600 font-semibold">
-                        <DollarSign className="w-4 h-4 mr-1" />
-                        {item.price}
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <span>by {item.author}</span>
+                      <span>{item.createdAt}</span>
+                      <div className="flex items-center space-x-3">
+                        <span className="flex items-center">
+                          <Eye className="w-3 h-3 mr-1" />
+                          {item.views}
+                        </span>
+                        <span className="flex items-center">
+                          <Heart className="w-3 h-3 mr-1" />
+                          {item.likes}
+                        </span>
+                        <span className="flex items-center">
+                          <MessageSquare className="w-3 h-3 mr-1" />
+                          {item.comments}
+                        </span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-gray-600 mb-3 line-clamp-2">{item.content}</p>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {item.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
+                  <div className="flex items-center space-x-2 ml-4">
+                    <Badge variant={item.status === "판매중" ? "default" : "secondary"} className="text-xs">
+                      {item.status}
+                    </Badge>
+                    <div className="flex items-center text-green-600 font-semibold text-sm">
+                      <DollarSign className="w-3 h-3 mr-1" />
+                      {item.price}
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center space-x-4">
-                    <span>by {item.author}</span>
-                    <span>{item.createdAt}</span>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="flex items-center">
-                      <Eye className="w-4 h-4 mr-1" />
-                      {item.views}
-                    </span>
-                    <span className="flex items-center">
-                      <Heart className="w-4 h-4 mr-1" />
-                      {item.likes}
-                    </span>
-                    <span className="flex items-center">
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      {item.comments}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, TrendingUp, Clock, MessageSquare, Heart, Eye } from "lucide-react"
+import { ArrowRight, TrendingUp, Clock, MessageSquare, Heart, Eye } from 'lucide-react'
 
 // 정적 데이터
 const latestPosts = [
@@ -48,8 +48,10 @@ const popularPosts = [
     category: "guide",
     categoryName: "가이드",
     author: "억만장자",
-    likes: 156,
+    createdAt: "2024-01-14",
     views: 5420,
+    likes: 156,
+    comments: 34,
   },
   {
     id: 5,
@@ -57,8 +59,21 @@ const popularPosts = [
     category: "doctrine",
     categoryName: "독트린",
     author: "Fleet_Analyst",
-    likes: 134,
+    createdAt: "2024-01-13",
     views: 3890,
+    likes: 134,
+    comments: 45,
+  },
+  {
+    id: 6,
+    title: "Titan 급매 - Avatar 완전 피팅",
+    category: "market",
+    categoryName: "장터",
+    author: "급매왕",
+    createdAt: "2024-01-15",
+    views: 3200,
+    likes: 89,
+    comments: 12,
   },
 ]
 
@@ -89,19 +104,14 @@ export default function HomePage() {
       </div>
 
       <div className="container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Latest Posts */}
-          <div className="lg:col-span-2">
+          <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900 flex items-center">
                 <Clock className="mr-3 w-6 h-6 text-blue-600" />
                 최신 글
               </h2>
-              <Link href="/guide/">
-                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-blue-600">
-                  전체보기 <ArrowRight className="ml-1 w-4 h-4" />
-                </Button>
-              </Link>
             </div>
 
             <div className="space-y-4">
@@ -144,89 +154,53 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Popular Posts */}
-            <Card className="border-gray-200">
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <TrendingUp className="mr-2 w-5 h-5 text-red-500" />
-                  인기 글
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {popularPosts.map((post) => (
-                    <div key={post.id} className="border-b border-gray-100 last:border-b-0 pb-4 last:pb-0">
-                      <Badge variant="outline" className="mb-2 text-xs">
-                        {post.categoryName}
-                      </Badge>
-                      <Link href={`/${post.category}/${post.id}/`}>
-                        <h4 className="font-medium text-gray-900 hover:text-blue-600 transition-colors mb-2 leading-snug">
-                          {post.title}
-                        </h4>
-                      </Link>
-                      <div className="flex items-center justify-between text-sm text-gray-500">
-                        <span>by {post.author}</span>
-                        <div className="flex items-center space-x-3">
+          {/* Popular Posts */}
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <TrendingUp className="mr-3 w-6 h-6 text-red-500" />
+                인기 글
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {popularPosts.map((post) => (
+                <Card key={post.id} className="card-hover border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <Badge variant="secondary" className="bg-red-50 text-red-700 border-red-200">
+                            {post.categoryName}
+                          </Badge>
+                          <span className="text-sm text-gray-500">{post.createdAt}</span>
+                        </div>
+                        <Link href={`/${post.category}/${post.id}/`}>
+                          <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-3">
+                            {post.title}
+                          </h3>
+                        </Link>
+                        <div className="flex items-center space-x-6 text-sm text-gray-500">
+                          <span className="font-medium">by {post.author}</span>
                           <span className="flex items-center">
-                            <Heart className="w-3 h-3 mr-1" />
+                            <Eye className="w-4 h-4 mr-1" />
+                            {post.views}
+                          </span>
+                          <span className="flex items-center">
+                            <Heart className="w-4 h-4 mr-1" />
                             {post.likes}
                           </span>
                           <span className="flex items-center">
-                            <Eye className="w-3 h-3 mr-1" />
-                            {post.views}
+                            <MessageSquare className="w-4 h-4 mr-1" />
+                            {post.comments}
                           </span>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Links */}
-            <Card className="border-gray-200">
-              <CardHeader>
-                <CardTitle className="text-lg">바로가기</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Link href="/guide/write/" className="block">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-gray-200 hover:bg-gray-50 bg-transparent"
-                    >
-                      가이드 작성
-                    </Button>
-                  </Link>
-                  <Link href="/doctrine/write/" className="block">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-gray-200 hover:bg-gray-50 bg-transparent"
-                    >
-                      독트린 작성
-                    </Button>
-                  </Link>
-                  <Link href="/fitting/write/" className="block">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-gray-200 hover:bg-gray-50 bg-transparent"
-                    >
-                      피팅 공유
-                    </Button>
-                  </Link>
-                  <Link href="/market/write/" className="block">
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start border-gray-200 hover:bg-gray-50 bg-transparent"
-                    >
-                      장터 등록
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </div>
