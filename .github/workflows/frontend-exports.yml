@@ -2,9 +2,8 @@ name: Build and Upload Static Export
 
 on:
     push:
-        branches: [Dev]
-    pull_request:
-        branches: [Dev]
+        branches: [Dev,main]
+
 
 jobs:
     build-and-export:
