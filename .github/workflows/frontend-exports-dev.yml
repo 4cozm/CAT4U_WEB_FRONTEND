@@ -1,0 +1,86 @@
+name: Build (Dev)
+
+on:
+    push:
+        branches: [Dev]
+
+jobs:
+    build-and-export:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout source
+              uses: actions/checkout@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 9
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: 'pnpm'
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build static export
+              run: pnpm build
+
+            - name: Set export timestamp
+              id: timestamp
+              run: echo "VALUE=$(date -u +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+            - name: Compose artifact name
+              run: echo "ARTIFACT_NAME=frontend-export-${{ steps.timestamp.outputs.VALUE }}" >> $GITHUB_ENV
+
+            - name: Upload export artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: dev${{ steps.timestamp.outputs.VALUE }}
+                  path: out/
+
+            # ✅ Dev: 백엔드 트리거 없음
+
+            - name: Notify Discord (Success, Dev)
+              if: success()
+              env:
+                  WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+              run: |
+                  SHA_SHORT="${GITHUB_SHA::7}"
+                  cat > payload.json <<'JSON'
+                  {
+                    "embeds": [{
+                      "title": "✅ Dev 빌드 성공",
+                      "description": "아티팩트: ${ARTIFACT}\n리포지토리: ${REPO}\n커밋: ${SHA}\n런: ${RUN_URL}",
+                      "color": 5763719
+                    }]
+                  }
+                  JSON
+                  sed -i "s|\${ARTIFACT}|${ARTIFACT_NAME}|g" payload.json
+                  sed -i "s|\${REPO}|${GITHUB_REPOSITORY}|g" payload.json
+                  sed -i "s|\${SHA}|${SHA_SHORT}|g" payload.json
+                  sed -i "s|\${RUN_URL}|https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|g" payload.json
+                  curl -H "Content-Type: application/json" -X POST -d @payload.json "$WEBHOOK"
+
+            - name: Notify Discord (Failure, Dev)
+              if: failure()
+              env:
+                  WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+              run: |
+                  SHA_SHORT="${GITHUB_SHA::7}"
+                  cat > payload.json <<'JSON'
+                  {
+                    "embeds": [{
+                      "title": "❌ Dev 빌드 실패",
+                      "description": "리포지토리: ${REPO}\n커밋: ${SHA}\n런: ${RUN_URL}",
+                      "color": 15548997
+                    }]
+                  }
+                  JSON
+                  sed -i "s|\${REPO}|${GITHUB_REPOSITORY}|g" payload.json
+                  sed -i "s|\${SHA}|${SHA_SHORT}|g" payload.json
+                  sed -i "s|\${RUN_URL}|https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|g" payload.json
+                  curl -H "Content-Type: application/json" -X POST -d @payload.json "$WEBHOOK"
