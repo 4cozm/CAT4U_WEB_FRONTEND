@@ -1,13 +1,15 @@
 "use client"
 
-import Link from "next/link"
 import { useState } from "react"
-import { Menu, X, User, LogOut } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
 
   const navigation = [
     { name: "홈", href: "/" },
@@ -17,107 +19,99 @@ export default function Header() {
     { name: "장터", href: "/market/" },
   ]
 
+  // 로그인 버튼 클릭 시 로그인 페이지로 이동
+  const handleLogin = () => {
+    router.push("/login")
+  }
+
+  // 로그아웃은 임시로 상태만 false로 전환
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+  }
+
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="container">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
-              <span className="font-semibold text-xl text-gray-900">EVE Community</span>
+    <header className="site-header">
+      <div className="container flex items-center justify-between py-4">
+        {/* 로고 */}
+        <Link href="/" className="text-lg font-bold">
+          EVE Community
+        </Link>
+
+        {/* 데스크톱 네비게이션 */}
+        <nav className="hidden md:flex gap-4">
+          {navigation.map((item) => (
+            <Link key={item.name} href={item.href}>
+              {item.name}
             </Link>
-          </div>
+          ))}
+        </nav>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-gray-700 hover:text-blue-600 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          {/* Auth Section */}
-          <div className="hidden md:flex items-center space-x-3">
-            {isLoggedIn ? (
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600">
-                  <User className="w-4 h-4 mr-2" />
-                  사용자명
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-700 hover:text-red-600"
-                  onClick={() => setIsLoggedIn(false)}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  로그아웃
-                </Button>
-              </div>
-            ) : (
-              <Link href="/login/">
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
-                  로그인
-                </Button>
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-700">
-              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        {/* 데스크톱 로그인/로그아웃 버튼 */}
+        <div className="hidden md:flex items-center gap-4">
+          {isLoggedIn ? (
+            <>
+              <span>사용자명</span>
+              <Button variant="ghost" onClick={handleLogout}>
+                로그아웃
+              </Button>
+            </>
+          ) : (
+            <Button variant="secondary" onClick={handleLogin}>
+              로그인
             </Button>
-          </div>
+          )}
         </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200">
-            <div className="py-4 space-y-1">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-700 hover:text-blue-600 hover:bg-gray-50 block px-4 py-2 rounded-lg text-sm font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              <div className="pt-4 border-t border-gray-200 mt-4">
-                {isLoggedIn ? (
-                  <div className="space-y-2">
-                    <div className="text-gray-700 px-4 py-2 text-sm">사용자명</div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-700 hover:text-red-600 w-full justify-start px-4"
-                      onClick={() => setIsLoggedIn(false)}
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      로그아웃
-                    </Button>
-                  </div>
-                ) : (
-                  <Link href="/login/" onClick={() => setIsMenuOpen(false)}>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white w-full mx-4">
-                      로그인
-                    </Button>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {/* 모바일 메뉴 토글 버튼 */}
+        <button
+          className="md:hidden inline-flex items-center justify-center p-2"
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+        >
+          {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
+
+      {/* 모바일 네비게이션 드롭다운 */}
+      {isMenuOpen && (
+        <nav className="md:hidden bg-card py-2">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="block px-4 py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {item.name}
+            </Link>
+          ))}
+          <div className="border-t border-border mt-2 pt-2 px-4 flex items-center gap-4">
+            {isLoggedIn ? (
+              <>
+                <span>사용자명</span>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    handleLogout()
+                    setIsMenuOpen(false)
+                  }}
+                >
+                  로그아웃
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsMenuOpen(false)
+                  handleLogin()
+                }}
+              >
+                로그인
+              </Button>
+            )}
+          </div>
+        </nav>
+      )}
     </header>
   )
 }

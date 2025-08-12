@@ -1,13 +1,8 @@
-"use client"
-
-import { useEffect } from "react"
-
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, TrendingUp, Clock, MessageSquare, Heart, Eye } from "lucide-react"
-import { useRouter } from "next/navigation"
 
 // 정적 데이터
 const latestPosts = [
@@ -83,22 +78,6 @@ const popularPosts = [
 ]
 
 export default function HomePage() {
-  const router = useRouter()
-
-  useEffect(() => {
-    // 로그인 상태 확인 (실제로는 토큰이나 세션 확인)
-    const isLoggedIn = false // 임시로 false 설정
-
-    if (!isLoggedIn) {
-      // 로그인되지 않은 경우 로그인 페이지 표시
-      return
-    } else {
-      // 로그인된 경우 메인 페이지로 리다이렉트
-      router.push("/home/")
-    }
-  }, [router])
-
-  // 로그인되지 않은 경우 로그인 페이지 렌더링
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
