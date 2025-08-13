@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    /* iOS-like light glass theme */
+    --bg: #f5f7fb;
+    --text: #0b1220;
+    --muted: #6b7280;
+    --primary: #0a84ff; /* iOS Blue */
+    --secondary: #34c759; /* iOS Green */
+    --accent: #ff9f0a; /* iOS Orange */
+}
+
+html,
+body,
+#__next {
+    height: 100%;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family:
+        -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI', Roboto, Inter, system-ui,
+        sans-serif;
+    overflow-x: hidden;
+}
+
+:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--primary) 80%, transparent);
+    outline-offset: 2px;
+}
+
+/* iOS-like soft button */
+.btn-neu {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: 14px;
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 6px 20px rgba(0, 0, 0, 0.06);
+    transition:
+        box-shadow 160ms ease,
+        transform 120ms ease,
+        background 160ms ease;
+    color: var(--text);
+}
+.btn-neu:hover {
+    box-shadow:
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 10px 24px rgba(0, 0, 0, 0.09);
+}
+.btn-neu:active {
+    transform: translateY(1px);
+    box-shadow:
+        inset 0 1px 3px rgba(0, 0, 0, 0.08),
+        0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.link-underline {
+    position: relative;
+}
+.link-underline::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--secondary)));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+}
+.link-underline:hover::after,
+.link-underline[aria-current='page']::after {
+    transform: scaleX(1);
+}
