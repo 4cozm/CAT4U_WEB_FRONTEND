@@ -3,12 +3,16 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 
-export default function NavLink({ href, children, current }) {
+export default function NavLink({ href, children, current, className }) {
     return (
         <Link
             href={href}
             aria-current={current ? 'page' : undefined}
-            className={clsx('link-underline text-sm text-black/70 transition-colors hover:text-black')}
+            className={clsx(
+                'link-underline text-sm transition-colors text-current',
+                current ? '' : 'hover:text-[var(--primary)]',
+                className
+            )}
         >
             {children}
         </Link>

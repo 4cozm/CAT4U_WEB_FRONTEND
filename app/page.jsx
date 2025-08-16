@@ -1,15 +1,13 @@
-import CTAButtons from '@/components/CTAButtons';
 import GlassCard from '@/components/GlassCard';
 
 export default function HomePage() {
     return (
         <div className="grid gap-6 md:grid-cols-2">
             <GlassCard className="md:col-span-2">
-                <h1 className="text-3xl md:text-4xl font-semibold">CAT4U 커뮤니티</h1>
+                <h1 className="text-3xl md:text-4xl font-semibold">🐸🐟😺 커뮤니티</h1>
                 <p className="mt-3 text-muted">
-                    iOS 스타일의 라이트 글래스 UI 데모입니다. 가이드, 독트린, 피팅, 장터 정보를 공유하세요.
+                    가이드, 독트린, 피팅 정보를 공유하고 함께 성장하든가 말든가
                 </p>
-                <CTAButtons />
             </GlassCard>
 
             <GlassCard>

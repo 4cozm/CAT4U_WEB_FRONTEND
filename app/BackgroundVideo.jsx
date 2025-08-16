@@ -2,10 +2,14 @@
 import { useEffect, useRef, useState } from 'react';
 
 function pickSrc() {
-    const wide = window.matchMedia('(min-width: 2560px)').matches;
+    const cssW = window.innerWidth;
+    const physW = Math.round(cssW * window.devicePixelRatio);
+
+    const wide = physW >= 2560; // 2K 이상이면 true
+
     const v = document.createElement('video');
     const canWebm = v.canPlayType?.('video/webm; codecs="vp9"') !== '';
-    // 2K MP4 폴백까지 지원
+
     if (wide) return canWebm ? '/bg/loop-2k-60s.webm' : '/bg/loop-2k-60s.mp4';
     return canWebm ? '/bg/loop-1080p-60s.webm' : '/bg/loop-1080p-60s.mp4';
 }
