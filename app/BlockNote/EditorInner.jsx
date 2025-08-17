@@ -1,4 +1,3 @@
-// app/BlockNote/EditorInner.jsx
 "use client";
 import "@blocknote/core/fonts/inter.css";
 import { ko } from "@blocknote/core/locales";
@@ -10,46 +9,71 @@ import React from "react";
 
 import { SlashMenu } from "./slashMenu";
 
-export default function EditorInner() {
-  // 1) URL에서 카테고리/경로 추출 → 초안 키 만들기
-  const searchParams = useSearchParams();
+export default function EditorInner({ serverContent, serverUpdatedAt }) {
+  // URL에서 컨텍스트 추출
+  const sp = useSearchParams();
   const pathname = usePathname();
-  const category = (searchParams.get("category") || "general").toLowerCase();
-  const DRAFT_KEY = React.useMemo(() => `draft:blocknote:${pathname}:${category}`, [pathname, category]);
+  const category = (sp.get("category") || "general").toLowerCase();
+  const mode = (sp.get("mode") || "create").toLowerCase(); // create | edit
+  const docId = sp.get("id") || null;
 
-  // 2) 초기 로드 시 해당 키의 초안 불러오기
-  const initialContent = React.useMemo(() => {
-    if (typeof window === "undefined") return undefined;
+  // 초안 키
+  const DRAFT_KEY = React.useMemo(() => {
+    const idOrCategory = mode === "edit" ? docId || "unknown" : category;
+    return `draft:blocknote:${mode}:${idOrCategory}:${pathname}`;
+  }, [mode, docId, category, pathname]);
+
+  // 로컬 초안 로드
+  const draft = React.useMemo(() => {
+    if (typeof window === "undefined") return null;
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
-      return raw ? JSON.parse(raw) : undefined;
+      return raw ? JSON.parse(raw) : null; // { blocks, updatedAt }
     } catch {
-      return undefined;
+      return null;
     }
   }, [DRAFT_KEY]);
 
-  // 3) 에디터 생성 (한글 사전 + 초기 초안)
+  // 충돌 해결: 로컬이 더 최신이면 복구 여부 질문
+  const initial = React.useMemo(() => {
+    if (!draft?.blocks) return serverContent;
+    if (!serverUpdatedAt || draft.updatedAt > serverUpdatedAt) {
+      const useLocal = confirm("이전 로컬 초안이 있습니다. 로컬 초안을 복구할까요?");
+      return useLocal ? draft.blocks : serverContent;
+    }
+    return serverContent;
+  }, [draft, serverContent, serverUpdatedAt]);
+
   const editor = useCreateBlockNote({
     dictionary: ko,
-    initialContent,
+    initialContent: initial, // blocks 배열 or undefined
   });
 
-  // 4) 변경사항을 디바운스로 해당 키에 저장
+  // 변경사항 디바운스 저장
   React.useEffect(() => {
     let t;
     const unsub = editor.onChange(() => {
       clearTimeout(t);
       t = setTimeout(() => {
         try {
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(editor.topLevelBlocks));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ blocks: editor.topLevelBlocks, updatedAt: Date.now() }));
         } catch {}
-      }, 800); // 0.8s 디바운스
+      }, 800);
     });
     return () => {
       clearTimeout(t);
       unsub();
     };
   }, [editor, DRAFT_KEY]);
+
+  // 외부에서 “저장 성공”시 플러시하고 싶을 때를 위한 이벤트 훅(선택)
+  React.useEffect(() => {
+    const h = (e) => {
+      if (e?.detail?.key === DRAFT_KEY) localStorage.removeItem(DRAFT_KEY);
+    };
+    window.addEventListener("draft:clear", h);
+    return () => window.removeEventListener("draft:clear", h);
+  }, [DRAFT_KEY]);
 
   return (
     <BlockNoteView editor={editor} slashMenu={false}>
