@@ -112,3 +112,9 @@ body {
     /* color-mix로 은은한 네온 느낌 */
     box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent);
 }
+
+/* 내부 스크롤은 되지만 스크롤바는 보이지 않게 */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+/* 바깥 레이아웃 밀림 방지 */
+.scrollbar-none { scrollbar-gutter: stable both-edges; }
