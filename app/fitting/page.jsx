@@ -1,10 +1,13 @@
 import GlassCard from '@/components/GlassCard';
+import WriteButton from '@/components/WriteButton';
 
 export default function FittingPage() {
   return (
     <GlassCard>
-      <h1 className="text-3xl font-semibold">피팅</h1>
-      <p className="mt-2 text-muted">콘텐츠 준비 중입니다.</p>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-semibold">피팅</h1>
+        <WriteButton category="fitting" />
+      </div>
     </GlassCard>
   );
 }
