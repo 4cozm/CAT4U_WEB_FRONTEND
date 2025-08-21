@@ -6,32 +6,9 @@ import { createReactInlineContentSpec, useCreateBlockNote } from "@blocknote/rea
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import React from "react";
-import { SlashMenu } from "./slashMenu";
+import SlashMenu from "./slashMenu.jsx";
 
-/* koFixed 생략 없이 기존 그대로 사용 */
-const koFixed = {
-  ...ko,
-  slash_menu: {
-    ...ko.slash_menu,
-    heading: { ...ko.slash_menu.heading, title: "제목 1" },
-    heading_2: { ...ko.slash_menu.heading_2, title: "제목 2" },
-    heading_3: { ...ko.slash_menu.heading_3, title: "제목 3" },
-    heading_4: { ...ko.slash_menu.heading_4, title: "제목 4" },
-    heading_5: { ...ko.slash_menu.heading_5, title: "제목 5" },
-    heading_6: { ...ko.slash_menu.heading_6, title: "제목 6" },
-  },
-  formatting_toolbar: {
-    ...ko.formatting_toolbar,
-    heading: { ...ko.formatting_toolbar.heading, title: "제목 1" },
-    heading_2: { ...ko.formatting_toolbar.heading_2, title: "제목 2" },
-    heading_3: { ...ko.formatting_toolbar.heading_3, title: "제목 3" },
-    heading_4: { ...ko.formatting_toolbar.heading_4, title: "제목 4" },
-    heading_5: { ...ko.formatting_toolbar.heading_5, title: "제목 5" },
-    heading_6: { ...ko.formatting_toolbar.heading_6, title: "제목 6" },
-  },
-};
-
-/* 인라인 이모지 스펙 (이미 사용 중인 버전 그대로) */
+/* 인라인 이모지 스펙 (사용 중인 버전 유지) */
 const inlineEmoji = createReactInlineContentSpec(
   {
     type: "emoji",
@@ -68,7 +45,7 @@ export default function EditorInner({ serverContent }) {
 
   const editor = useCreateBlockNote({
     schema,
-    dictionary: koFixed,
+    dictionary: ko, // ✅ 기본 ko만 사용
     initialContent: serverContent,
   });
 
