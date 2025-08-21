@@ -113,3 +113,9 @@ body {
 .scrollbar-none {
   scrollbar-gutter: stable both-edges;
 }
+
+/* 웹킷 기반 브라우저 (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 0px; /* 세로 스크롤바 폭 */
+  height: 0px; /* 가로 스크롤바 높이 */
+}

@@ -12,25 +12,59 @@ import SlashMenu from "./slashMenu.jsx";
 const inlineEmoji = createReactInlineContentSpec(
   {
     type: "emoji",
-    propSchema: { src: { default: "" }, alt: { default: "" } },
+    propSchema: {
+      src: { default: "" },
+      alt: { default: "" },
+      // 픽셀 기반 크기 지정용
+      width: { default: null }, // 예: 64
+      height: { default: null }, // 예: 64
+      // 한 번에 정사각형 지정하고 싶을 때(size가 있으면 width/height 무시)
+      size: { default: 20 }, // 예: 64
+    },
     content: "none",
     draggable: false,
   },
   {
-    render: ({ inlineContent }) => (
-      <img
-        src={inlineContent.props.src || ""}
-        alt={inlineContent.props.alt || ""}
-        style={{ display: "inline", height: "1em", verticalAlign: "-0.2em" }}
-        draggable={false}
-        onError={(e) => {
-          e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-        }}
-      />
-    ),
+    render: ({ inlineContent }) => {
+      const { src, alt, width, height, size } = inlineContent.props || {};
+
+      // 우선순위: size > width/height > 기본값(24)
+      const w = Number(size ?? width) || 24;
+      const h = Number(size ?? height) || 24;
+
+      return (
+        <img
+          src={src || ""}
+          alt={alt || ""}
+          width={w}
+          height={h}
+          style={{
+            display: "inline-block",
+            width: `${w}px`,
+            height: `${h}px`,
+            verticalAlign: "-0.2em",
+          }}
+          draggable={false}
+          onError={(e) => {
+            // 투명 1x1 픽셀로 대체
+            e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+          }}
+        />
+      );
+    },
     fromHTML: (el) => {
       if (!el || el.tagName !== "IMG") return null;
-      return { src: el.getAttribute("src") || "", alt: el.getAttribute("alt") || "" };
+      // HTML에서 가져올 때 width/height 속성도 함께 읽어줌
+      const wAttr = el.getAttribute("width");
+      const hAttr = el.getAttribute("height");
+      const w = wAttr ? Number(wAttr) : null;
+      const h = hAttr ? Number(hAttr) : null;
+      return {
+        src: el.getAttribute("src") || "",
+        alt: el.getAttribute("alt") || "",
+        width: Number.isFinite(w) ? w : null,
+        height: Number.isFinite(h) ? h : null,
+      };
     },
   }
 );
@@ -45,7 +79,7 @@ export default function EditorInner({ serverContent }) {
 
   const editor = useCreateBlockNote({
     schema,
-    dictionary: ko, // ✅ 기본 ko만 사용
+    dictionary: ko,
     initialContent: serverContent,
   });
 
