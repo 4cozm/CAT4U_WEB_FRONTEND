@@ -72,9 +72,9 @@ async function walk(dir, relBase = "") {
     }
 
     await fs.writeFile(MANIFEST_PATH, JSON.stringify(out, null, 2), "utf8");
-    console.log(`✅ manifest written: ${MANIFEST_PATH} (${out.length} items)`);
+    console.log(`매니패스트 작업 완료: ${MANIFEST_PATH} (${out.length} 개)`);
   } catch (err) {
-    console.error("❌ Failed to generate manifest:", err);
+    console.error("매니페스트 작업중 오류 발생:", err);
     process.exit(1);
   }
 })();

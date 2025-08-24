@@ -52,7 +52,8 @@ const inlineEmoji = createReactInlineContentSpec(
         />
       );
     },
-    fromHTML: (el) => {
+    // @ts-ignore
+    fromHTML: (/** @type {HTMLElement} */ el) => {
       if (!el || el.tagName !== "IMG") return null;
       // HTML에서 가져올 때 width/height 속성도 함께 읽어줌
       const wAttr = el.getAttribute("width");
@@ -69,7 +70,13 @@ const inlineEmoji = createReactInlineContentSpec(
   }
 );
 
-const EditorInner = forwardRef(function EditorInner({ serverContent }, ref) {
+/**
+ * @typedef {Object} EditorInnerProps
+ * @property {any} serverContent
+ */
+/** @type {import('react').ForwardRefRenderFunction<any, EditorInnerProps>} */
+const EditorInner = forwardRef(function EditorInner(props, ref) {
+  const { serverContent } = props || {};
   const schema = React.useMemo(() => {
     return BlockNoteSchema.create({
       blockSpecs: defaultBlockSpecs,
@@ -88,6 +95,15 @@ const EditorInner = forwardRef(function EditorInner({ serverContent }, ref) {
     ref,
     () => ({
       getJSON: () => editor.document,
+
+      //임시 저장 복원용
+      setJSON: (doc) => {
+        if (!editor || !doc) return;
+        try {
+          // 현재 문서 전체(editor.document)를 새 문서(doc)로 교체
+          editor.replaceBlocks(editor.document, doc);
+        } catch (e) {}
+      },
     }),
     [editor]
   );

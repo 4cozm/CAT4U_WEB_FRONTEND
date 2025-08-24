@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef } from "react";
+import BlockNoteRestore from "../../components/BlockNoteRestore.jsx";
 import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
 
@@ -28,7 +29,6 @@ function DisablePageScroll() {
    - 하단: BlockNote Editor 영역 (고정 높이 카드) */
 export default function BlockNotePage() {
   const editorRef = useRef(null);
-
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col px-4 pt-4 overflow-hidden">
       {/* 전역 스크롤 비활성화 */}
@@ -40,6 +40,15 @@ export default function BlockNotePage() {
         <div className="flex gap-2">
           {/*임시 저장 버튼 */}
           <BlockNoteTempSave content={() => editorRef.current?.getJSON?.()} />
+
+          {/*임시 저장 복원 버튼 */}
+          <BlockNoteRestore
+            onRestore={(doc) => {
+              const api = editorRef.current;
+              if (!api) return;
+              api.setJSON(doc);
+            }}
+          />
 
           {/* 저장 버튼 */}
           <button className="px-4 py-2 rounded-lg bg-blue-500/80 text-white hover:bg-blue-400 transition" type="button">

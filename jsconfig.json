@@ -1,8 +1,20 @@
 {
-    "compilerOptions": {
-        "baseUrl": ".",
-        "paths": {
-            "@/*": ["*"]
-        }
-    }
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "checkJs": true,
+    "target": "esnext",
+    "module": "esnext",
+
+    "moduleResolution": "bundler",
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["*"]
+    },
+
+    "types": ["node", "react", "react-dom", "next"],
+
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules"]
 }
