@@ -1,5 +1,6 @@
 "use client";
-import React from "react";
+import React, { useRef } from "react";
+import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
 
 /* DisablePageScroll
@@ -26,6 +27,8 @@ function DisablePageScroll() {
    - 중단: 제목 입력 필드
    - 하단: BlockNote Editor 영역 (고정 높이 카드) */
 export default function BlockNotePage() {
+  const editorRef = useRef(null);
+
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col px-4 pt-4 overflow-hidden">
       {/* 전역 스크롤 비활성화 */}
@@ -35,10 +38,9 @@ export default function BlockNotePage() {
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-white">새 글 작성</h1>
         <div className="flex gap-2">
-          {/* 임시저장 버튼 (아직 미구현) */}
-          <button className="px-4 py-2 rounded-lg bg-white/10 text-gray-200 hover:bg-white/20 transition" type="button">
-            임시저장(미구현)
-          </button>
+          {/*임시 저장 버튼 */}
+          <BlockNoteTempSave content={() => editorRef.current?.getJSON?.()} />
+
           {/* 저장 버튼 */}
           <button className="px-4 py-2 rounded-lg bg-blue-500/80 text-white hover:bg-blue-400 transition" type="button">
             저장
@@ -58,7 +60,7 @@ export default function BlockNotePage() {
           - 배경 반투명 + 블러 + 그림자
           - 외부 스크롤 없음, 내부 에디터만 스크롤 */}
       <div className="h-[60vh] rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur overflow-visible">
-        <EditorHost />
+        <EditorHost ref={editorRef} />
       </div>
     </main>
   );
