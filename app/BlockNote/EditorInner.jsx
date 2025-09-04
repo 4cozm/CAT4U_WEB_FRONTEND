@@ -6,84 +6,56 @@ import { createReactInlineContentSpec, useCreateBlockNote } from "@blocknote/rea
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import React, { forwardRef, useImperativeHandle } from "react";
-import { MdHelpOutline } from "react-icons/md";
-
 import SlashMenu from "./slashMenu.jsx";
 
-/* ────────────────────────────────────────────────────────────
-   인라인 이모지 스펙
-   - 기본: 글자크기 따라가기(em) + 최소/최대 clamp
-   - 명시(px) 존재 시: 그 값 고정
-   - scale: 글자 대비 배율(기본 1)
-   ──────────────────────────────────────────────────────────── */
-
+/* 인라인 이모지 스펙 (사용 중인 버전 유지) */
 const inlineEmoji = createReactInlineContentSpec(
   {
     type: "emoji",
     propSchema: {
       src: { default: "" },
       alt: { default: "" },
-      width: { default: null },
-      height: { default: null },
-      size: { default: null },
-      scale: { default: 1 },
+      // 픽셀 기반 크기 지정용
+      width: { default: null }, // 예: 64
+      height: { default: null }, // 예: 64
+      // 한 번에 정사각형 지정하고 싶을 때(size가 있으면 width/height 무시)
+      size: { default: 20 }, // 예: 64
     },
     content: "none",
     draggable: false,
   },
   {
     render: ({ inlineContent }) => {
-      const { src, alt, width, height, size, scale } = inlineContent.props || {};
-      const explicitW = Number(size ?? width);
-      const explicitH = Number(size ?? height);
-      const hasExplicitW = Number.isFinite(explicitW);
-      const hasExplicitH = Number.isFinite(explicitH);
-      const hasExplicitSize = hasExplicitW || hasExplicitH;
+      const { src, alt, width, height, size } = inlineContent.props || {};
 
-      const wPx = hasExplicitW ? explicitW : hasExplicitH ? explicitH : undefined;
-      const hPx = hasExplicitH ? explicitH : hasExplicitW ? explicitW : undefined;
-
-      // 이미지 로드 여부 상태 관리
-      const [error, setError] = React.useState(false);
-
-      if (error || !src) {
-        return (
-          <MdHelpOutline
-            role="img"
-            aria-label={alt || "emoji"}
-            style={{
-              display: "inline-block",
-              verticalAlign: "-0.2em",
-              width: hasExplicitSize ? wPx : "clamp(22px, calc(1.1em * var(--emoji-scale, 1)), 2.5em)",
-              height: hasExplicitSize ? hPx : "clamp(22px, calc(1.1em * var(--emoji-scale, 1)), 2.5em)",
-              // @ts-ignore
-              ["--emoji-scale"]: Number(scale) || 1,
-            }}
-            data-inline-emoji=""
-          />
-        );
-      }
+      // 우선순위: size > width/height > 기본값(24)
+      const w = Number(size ?? width) || 24;
+      const h = Number(size ?? height) || 24;
 
       return (
         <img
-          src={src}
+          src={src || ""}
           alt={alt || ""}
-          {...(hasExplicitSize ? { width: wPx, height: hPx } : {})}
+          width={w}
+          height={h}
           style={{
             display: "inline-block",
+            width: `${w}px`,
+            height: `${h}px`,
             verticalAlign: "-0.2em",
-            // @ts-ignore
-            ["--emoji-scale"]: Number(scale) || 1,
           }}
-          data-inline-emoji=""
           draggable={false}
-          onError={() => setError(true)}
+          onError={(e) => {
+            // 투명 1x1 픽셀로 대체
+            e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+          }}
         />
       );
     },
     // @ts-ignore
-    fromHTML: (el) => {
+    fromHTML: (/** @type {HTMLElement} */ el) => {
       if (!el || el.tagName !== "IMG") return null;
+      // HTML에서 가져올 때 width/height 속성도 함께 읽어줌
       const wAttr = el.getAttribute("width");
       const hAttr = el.getAttribute("height");
       const w = wAttr ? Number(wAttr) : null;
@@ -102,10 +74,9 @@ const inlineEmoji = createReactInlineContentSpec(
  * @typedef {Object} EditorInnerProps
  * @property {any} serverContent
  */
+/** @type {import('react').ForwardRefRenderFunction<any, EditorInnerProps>} */
 const EditorInner = forwardRef(function EditorInner(props, ref) {
-  // @ts-ignore
   const { serverContent } = props || {};
-
   const schema = React.useMemo(() => {
     return BlockNoteSchema.create({
       blockSpecs: defaultBlockSpecs,
@@ -119,18 +90,19 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
     initialContent: serverContent,
   });
 
-  // 부모에게 메서드 노출
+  //부모에게 메서드 노출
   useImperativeHandle(
     ref,
     () => ({
       getJSON: () => editor.document,
+
+      //임시 저장 복원용
       setJSON: (doc) => {
         if (!editor || !doc) return;
         try {
+          // 현재 문서 전체(editor.document)를 새 문서(doc)로 교체
           editor.replaceBlocks(editor.document, doc);
-        } catch (e) {
-          console.warn("replaceBlocks failed:", e);
-        }
+        } catch (e) {}
       },
     }),
     [editor]
@@ -144,7 +116,6 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
         </BlockNoteView>
       </div>
 
-      {/* 전역 스타일 */}
       <style jsx global>{`
         :root .bn-container,
         :root .bn-editor,
@@ -161,19 +132,6 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
         :root .bn-container:focus-within {
           box-shadow: none !important;
           outline: none !important;
-        }
-        :root .bn-editor img[data-inline-emoji] {
-          width: clamp(22px, calc(1.1em * var(--emoji-scale, 1)), 2.5em);
-          height: clamp(22px, calc(1.1em * var(--emoji-scale, 1)), 2.5em);
-          image-rendering: auto;
-        }
-
-        /* 제목에서 살짝 더 키우고 싶으면 배율만 덮어쓰기 */
-        :root .bn-editor h1 img[data-inline-emoji] {
-          --emoji-scale: 1.15;
-        }
-        :root .bn-editor h2 img[data-inline-emoji] {
-          --emoji-scale: 1.08;
         }
       `}</style>
     </>
