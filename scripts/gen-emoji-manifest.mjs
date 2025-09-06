@@ -34,7 +34,6 @@ async function rmrf(p) {
   await fs.rm(p, { recursive: true, force: true });
 }
 
-<<<<<<< HEAD
 async function extractZip(zipAbs, destDir) {
   await ensureDir(destDir);
   await new Promise((resolve, reject) => {
@@ -58,21 +57,12 @@ async function stripSingleTopLevelWrapper(dir) {
 }
 
 // 디렉터리 재귀 탐색
-=======
-/**
- * 유동 깊이 지원:
- * - category: 첫 폴더
- * - subpath: 나머지 폴더들(0..N)을 배열로
- * - filename: 파일명
- */
->>>>>>> c122865f6fd007228922efab0fb530bec185a8cb
 async function walk(dir, relBase = "") {
   const out = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
 
   for (const ent of entries) {
     const abs = path.join(dir, ent.name);
-<<<<<<< HEAD
     const rel = path.join(relBase, ent.name).replace(/\\/g, "/"); // 윈도우 보정
     if (ent.isDirectory()) {
       out.push(...(await walk(abs, rel)));
@@ -87,13 +77,6 @@ async function walk(dir, relBase = "") {
         folders,
         depth: folders.length,
       });
-=======
-    const rel = path.join(relBase, ent.name).replace(/\\/g, "/"); // Win 경로 보정
-
-    if (ent.isDirectory()) {
-      out.push(...(await walk(abs, rel)));
-      continue;
->>>>>>> c122865f6fd007228922efab0fb530bec185a8cb
     }
 
     if (!ALLOWED.test(ent.name)) continue;
@@ -147,12 +130,6 @@ async function walk(dir, relBase = "") {
 
     const out = [];
     for (const it of list) {
-<<<<<<< HEAD
-=======
-      const src = `/eve-emoji/${it.rel}`;
-
-      // 썸네일 경로(확장자 webp로)
->>>>>>> c122865f6fd007228922efab0fb530bec185a8cb
       const thumbRel = it.rel.replace(/\.[^.]+$/, ".webp");
       const thumbAbs = path.join(THUMB_DIR, thumbRel);
       await ensureDir(path.dirname(thumbAbs));
@@ -162,19 +139,11 @@ async function walk(dir, relBase = "") {
 
       out.push({
         name: it.name,
-<<<<<<< HEAD
         filename: it.filename,
         folders: it.folders,
         depth: it.depth,
         id: it.rel,
         url: `/eve-emoji-thumbs/${thumbRel}`,
-=======
-        category: it.category,
-        subcategory: it.subcategory,
-        subpath: it.subpath,
-        src,
-        thumb: `/eve-emoji-thumbs/${thumbRel}`,
->>>>>>> c122865f6fd007228922efab0fb530bec185a8cb
       });
     }
 
