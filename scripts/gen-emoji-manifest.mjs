@@ -1,80 +1,140 @@
-import { promises as fs } from "node:fs";
+// gen-emoji-manifest.mjs
+import { createReadStream, promises as fs } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import unzipper from "unzipper";
 
 const ROOT = process.cwd();
-const EMOJI_DIR = path.join(ROOT, "public", "eve-emoji");
-const THUMB_DIR = path.join(ROOT, "public", "eve-emoji-thumbs");
-const MANIFEST_PATH = path.join(EMOJI_DIR, "manifest.json");
+const ZIP_PATH = path.join(ROOT, "public", "eve-emoji.zip"); // ZIP 위치
+const EMOJI_DIR = path.join(ROOT, "public", "eve-emoji"); // 원본 (gitignore)
+const THUMB_DIR = path.join(ROOT, "public", "eve-emoji-thumbs"); // 썸네일 (gitignore)
+const MANIFEST_PATH = path.join(ROOT, "public", "manifest.json"); // 추적 유지
 
-const PNG_ONLY = true; // png만 사용할 거면 true 유지
+const PNG_ONLY = true;
 const ALLOWED = PNG_ONLY ? /\.png$/i : /\.(png|jpg|jpeg|webp)$/i;
 
-// "minmatar-ship.png" → "Minmatar Ship"
 const TITLE = (filename) => {
   const base = filename.replace(/\.[^.]+$/, "");
   return base.replace(/[-_]+/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 };
 
+// ───────────────────────── util ─────────────────────────
+async function exists(p) {
+  try {
+    await fs.stat(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
+async function rmrf(p) {
+  await fs.rm(p, { recursive: true, force: true });
+}
 
-// 디렉터리 재귀 탐색: 카테고리/2차카테고리/파일.png
+async function extractZip(zipAbs, destDir) {
+  await ensureDir(destDir);
+  await new Promise((resolve, reject) => {
+    createReadStream(zipAbs)
+      .pipe(unzipper.Extract({ path: destDir }))
+      .on("close", resolve)
+      .on("error", reject);
+  });
+}
+
+// ZIP 최상위에 폴더 하나만 있을 때 내용물을 상위로 승격
+async function stripSingleTopLevelWrapper(dir) {
+  const items = await fs.readdir(dir, { withFileTypes: true });
+  const topFiles = items.filter((i) => i.isFile());
+  const topDirs = items.filter((i) => i.isDirectory());
+  if (topFiles.length === 0 && topDirs.length === 1) {
+    const inner = path.join(dir, topDirs[0].name);
+    await fs.cp(inner, dir, { recursive: true, force: false, errorOnExist: false });
+    await rmrf(inner);
+  }
+}
+
+// 디렉터리 재귀 탐색
 async function walk(dir, relBase = "") {
   const out = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
+
   for (const ent of entries) {
     const abs = path.join(dir, ent.name);
-    const rel = path.join(relBase, ent.name).replace(/\\/g, "/"); // Win 경로 보정
+    const rel = path.join(relBase, ent.name).replace(/\\/g, "/"); // 윈도우 보정
     if (ent.isDirectory()) {
       out.push(...(await walk(abs, rel)));
     } else if (ALLOWED.test(ent.name)) {
-      const segs = rel.split("/"); // [cat, subcat, filename]
-      const category = segs[0] || "etc";
-      const subcategory = segs.length > 2 ? segs[1] : segs.length > 1 ? segs[1] : null;
+      const segs = rel.split("/");
+      const filename = segs.pop();
+      const folders = segs;
       out.push({
-        rel, // "cat/sub/file.png"
-        category, // 1차
-        subcategory: subcategory || null, // 2차(없으면 null)
-        name: TITLE(ent.name), // 보기용 이름
+        rel,
+        filename,
+        name: TITLE(filename),
+        folders,
+        depth: folders.length,
       });
     }
   }
   return out;
 }
 
+// ───────────────────────── main ─────────────────────────
 (async () => {
   try {
+    // 1) thumbs 삭제
+    console.log("🧹 1/5 remove thumbs:", THUMB_DIR);
+    await rmrf(THUMB_DIR);
+
+    // 2) 원본 삭제
+    console.log("🧹 2/5 remove originals:", EMOJI_DIR);
+    await rmrf(EMOJI_DIR);
+
+    // 3) 매니페스트 삭제
+    console.log("🗑️ 3/5 remove manifest:", MANIFEST_PATH);
+    await fs.rm(MANIFEST_PATH, { force: true });
+
+    // 4) ZIP 압축 해제 → eve-emoji
+    if (!(await exists(ZIP_PATH))) {
+      console.error(`ZIP 파일이 없습니다: ${ZIP_PATH}`);
+      process.exit(1);
+    }
+    console.log("📦 4/5 unzip:", ZIP_PATH, "→", EMOJI_DIR);
+    await extractZip(ZIP_PATH, EMOJI_DIR);
+    await stripSingleTopLevelWrapper(EMOJI_DIR);
+
+    // 5) 썸네일/매니페스트 생성
+    console.log("🧭 5/5 generate thumbnails & manifest…");
     await ensureDir(THUMB_DIR);
-    const list = await walk(EMOJI_DIR, "");
+    const list = await walk(EMOJI_DIR);
 
     const out = [];
     for (const it of list) {
-      const src = `/eve-emoji/${it.rel}`;
-
-      // 썸네일 경로(폴더 구조 유지, 확장자 webp로)
       const thumbRel = it.rel.replace(/\.[^.]+$/, ".webp");
       const thumbAbs = path.join(THUMB_DIR, thumbRel);
       await ensureDir(path.dirname(thumbAbs));
 
-      // 64px webp 썸네일 생성
       const inputAbs = path.join(EMOJI_DIR, it.rel);
       await sharp(inputAbs).resize(64, 64, { fit: "inside" }).webp({ quality: 85 }).toFile(thumbAbs);
 
       out.push({
         name: it.name,
-        category: it.category,
-        subcategory: it.subcategory, // 두 번째 계층
-        src, // 원본
-        thumb: `/eve-emoji-thumbs/${thumbRel}`, // 썸네일
+        filename: it.filename,
+        folders: it.folders,
+        depth: it.depth,
+        id: it.rel,
+        url: `/eve-emoji-thumbs/${thumbRel}`,
       });
     }
 
+    await ensureDir(path.dirname(MANIFEST_PATH));
     await fs.writeFile(MANIFEST_PATH, JSON.stringify(out, null, 2), "utf8");
-    console.log(`매니패스트 작업 완료: ${MANIFEST_PATH} (${out.length} 개)`);
+    console.log(`✅ 완료: ${MANIFEST_PATH} (${out.length} 개)`);
   } catch (err) {
-    console.error("매니페스트 작업중 오류 발생:", err);
+    console.error("❌ 작업 중 오류:", err);
     process.exit(1);
   }
 })();
