@@ -9,8 +9,8 @@ node_modules/
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-/public/eve-emoji/
-/public/eve-emoji-thumbs/
+/public/eve-emoji
+/public/eve-emoji-thumbs
 /public/manifest.json
 # testing
 /coverage
