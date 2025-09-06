@@ -1,82 +1,18 @@
+// app/BlockNote/EditorInner.jsx
 "use client";
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
-import { ko } from "@blocknote/core/locales";
-import { createReactInlineContentSpec, useCreateBlockNote } from "@blocknote/react";
+import { en } from "@blocknote/core/locales"; // ← locale 가져와서 placeholder만 한글로
+import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import React, { forwardRef, useImperativeHandle } from "react";
-import SlashMenu from "./slashMenu.jsx";
+import EveEmojiMenu from "./EveEmojiMenu.jsx";
+import inlineEmoji from "./InlineEmojiSpec.jsx";
 
-/* 인라인 이모지 스펙 (사용 중인 버전 유지) */
-const inlineEmoji = createReactInlineContentSpec(
-  {
-    type: "emoji",
-    propSchema: {
-      src: { default: "" },
-      alt: { default: "" },
-      // 픽셀 기반 크기 지정용
-      width: { default: null }, // 예: 64
-      height: { default: null }, // 예: 64
-      // 한 번에 정사각형 지정하고 싶을 때(size가 있으면 width/height 무시)
-      size: { default: 20 }, // 예: 64
-    },
-    content: "none",
-    draggable: false,
-  },
-  {
-    render: ({ inlineContent }) => {
-      const { src, alt, width, height, size } = inlineContent.props || {};
-
-      // 우선순위: size > width/height > 기본값(24)
-      const w = Number(size ?? width) || 24;
-      const h = Number(size ?? height) || 24;
-
-      return (
-        <img
-          src={src || ""}
-          alt={alt || ""}
-          width={w}
-          height={h}
-          style={{
-            display: "inline-block",
-            width: `${w}px`,
-            height: `${h}px`,
-            verticalAlign: "-0.2em",
-          }}
-          draggable={false}
-          onError={(e) => {
-            // 투명 1x1 픽셀로 대체
-            e.currentTarget.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
-          }}
-        />
-      );
-    },
-    // @ts-ignore
-    fromHTML: (/** @type {HTMLElement} */ el) => {
-      if (!el || el.tagName !== "IMG") return null;
-      // HTML에서 가져올 때 width/height 속성도 함께 읽어줌
-      const wAttr = el.getAttribute("width");
-      const hAttr = el.getAttribute("height");
-      const w = wAttr ? Number(wAttr) : null;
-      const h = hAttr ? Number(hAttr) : null;
-      return {
-        src: el.getAttribute("src") || "",
-        alt: el.getAttribute("alt") || "",
-        width: Number.isFinite(w) ? w : null,
-        height: Number.isFinite(h) ? h : null,
-      };
-    },
-  }
-);
-
-/**
- * @typedef {Object} EditorInnerProps
- * @property {any} serverContent
- */
-/** @type {import('react').ForwardRefRenderFunction<any, EditorInnerProps>} */
 const EditorInner = forwardRef(function EditorInner(props, ref) {
   const { serverContent } = props || {};
+
   const schema = React.useMemo(() => {
     return BlockNoteSchema.create({
       blockSpecs: defaultBlockSpecs,
@@ -84,25 +20,38 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
     });
   }, []);
 
+  // ✅ 기본 UI는 영어 유지, placeholder만 한글로 커스터마이즈
+  const dictionary = React.useMemo(
+    () => ({
+      ...en,
+      placeholders: {
+        ...en.placeholders,
+        // 빈 문서와 기본 플레이스홀더에 동일 문구 적용
+        emptyDocument: "여기에 입력하거나 '/'로 명령을, ';'로 이브 이모지를 사용하세요",
+        default: "여기에 입력하거나 '/'로 명령을, ';'로 이브 이모지를 사용하세요",
+        // (선택) 헤딩 자리표시도 한글로
+        heading: "제목",
+      },
+    }),
+    []
+  );
+
   const editor = useCreateBlockNote({
     schema,
-    dictionary: ko,
+    dictionary, // ← 추가
     initialContent: serverContent,
   });
 
-  //부모에게 메서드 노출
   useImperativeHandle(
     ref,
     () => ({
       getJSON: () => editor.document,
-
-      //임시 저장 복원용
       setJSON: (doc) => {
         if (!editor || !doc) return;
         try {
-          // 현재 문서 전체(editor.document)를 새 문서(doc)로 교체
-          editor.replaceBlocks(editor.document, doc);
-        } catch (e) {}
+          if (typeof editor.setContent === "function") editor.setContent(doc);
+          else editor.replaceBlocks(editor.document, doc);
+        } catch {}
       },
     }),
     [editor]
@@ -110,26 +59,31 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
 
   return (
     <>
-      <div className="h-full min-h-0 overflow-y-auto scrollbar-none overscroll-contain p-4">
-        <BlockNoteView editor={editor} slashMenu={false} formattingToolbar={false} className="!bg-transparent !p-0">
-          <SlashMenu />
+      <div className="bn-scope h-full min-h-0 overflow-y-auto scrollbar-none overscroll-contain p-4">
+        <BlockNoteView editor={editor} slashMenu formattingToolbar={false} className="!bg-transparent !p-0">
+          <EveEmojiMenu />
         </BlockNoteView>
       </div>
 
       <style jsx global>{`
-        :root .bn-container,
-        :root .bn-editor,
-        :root .bn-editor * {
+        :root .bn-scope .bn-container,
+        :root .bn-scope .bn-editor {
           background: transparent !important;
         }
-        :root .bn-container {
+        :root .bn-scope .bn-container {
           border: none !important;
           box-shadow: none !important;
         }
-        :root .bn-editor .bn-default-placeholder {
+        :root .bn-scope .bn-editor .bn-default-placeholder {
           color: rgba(255, 255, 255, 0.5) !important;
         }
-        :root .bn-container:focus-within {
+        :root .bn-scope .bn-editor [data-node-type] {
+          background: transparent !important;
+        }
+        :root .bn-scope .bn-editor [data-is-selected="true"],
+        :root .bn-scope .bn-editor .selected,
+        :root .bn-scope .bn-editor [contenteditable="true"]:focus {
+          background: transparent !important;
           box-shadow: none !important;
           outline: none !important;
         }
