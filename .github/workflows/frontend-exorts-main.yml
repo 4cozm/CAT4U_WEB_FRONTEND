@@ -29,6 +29,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Generate emoji manifest
+              run: pnpm prebuild
+
             - name: Build static export
               run: pnpm build
 
