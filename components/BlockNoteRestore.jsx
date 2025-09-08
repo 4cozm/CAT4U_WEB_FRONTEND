@@ -1,9 +1,10 @@
 "use client";
+
 import { formatKoreanTime } from "@/utils/date";
 import { useSearchParams } from "next/navigation";
 import React from "react";
 
-export default function BlockNoteDraftRestore({ onRestore }) {
+export default function BlockNoteRestore({ onRestore }) {
   const searchParams = useSearchParams();
   const page = searchParams.get("category") || "default";
   const key = `draft:${page}`;
