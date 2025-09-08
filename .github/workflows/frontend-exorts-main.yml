@@ -3,9 +3,6 @@ name: Build & Deploy (main)
 on:
     push:
         branches: [main]
-    # 필요하면 PR 빌드도 켜세요
-    # pull_request:
-    #   branches: [main]
 
 jobs:
     build-and-export:
@@ -15,25 +12,20 @@ jobs:
             - name: Checkout source
               uses: actions/checkout@v4
 
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: 9
-
             - name: Set up Node.js
               uses: actions/setup-node@v4
               with:
                   node-version: 20
-                  cache: 'pnpm'
+                  cache: 'npm'
 
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+              run: npm ci
 
             - name: Generate emoji manifest
-              run: pnpm prebuild
+              run: npm run prebuild
 
             - name: Build static export
-              run: pnpm build
+              run: npm run build
 
             - name: Set export timestamp
               id: timestamp
