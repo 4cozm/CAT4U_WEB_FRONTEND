@@ -7,7 +7,6 @@
     "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": { "@/*": ["*"] },
-    "types": ["node", "react", "react-dom", "next"],
     "skipLibCheck": true
   },
   "exclude": ["node_modules"]
