@@ -1,6 +1,8 @@
+import ClientProviders from "@/components/ClientProviders.jsx";
 import Header from "@/components/Header";
 import BackgroundVideo from "./BackgroundVideo";
 import "./globals.css";
+
 
 export const metadata = {
   title: "대물캣 커뮤니티",
@@ -13,8 +15,12 @@ export default function RootLayout({ children }) {
     <html lang="ko" suppressHydrationWarning>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <BackgroundVideo />
-        <Header />
-        <main className="relative mx-auto max-w-5xl px-4 pb-24 pt-28">{children}</main>
+        <ClientProviders>
+          <Header />
+          <main className="relative mx-auto max-w-5xl px-4 pb-24 pt-28">
+            {children}
+          </main>
+        </ClientProviders>
       </body>
     </html>
   );
