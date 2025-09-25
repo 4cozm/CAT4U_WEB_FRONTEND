@@ -6,7 +6,7 @@ import React, { forwardRef } from "react";
 const EditorInner = dynamic(() => import("./EditorInner"), { ssr: false });
 
 const EditorHost = forwardRef(function EditorHost(props, ref) {
-  const [mounted, setMounted] = React.useState(false); // SSR/Hydration 불일치 방지
+  const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
   if (!mounted) return null;
   return <EditorInner ref={ref} {...props} />;
