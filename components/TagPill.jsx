@@ -1,6 +1,5 @@
 // 알약 형태의 카테고리 표시기
 import clsx from 'clsx';
-
 export default function TagPill({ children, className }) {
     return (
         <span
