@@ -1,6 +1,6 @@
 "use client";
 //토스트 에러를 클라이언트 사이드에서 랜더링해주는 코드
-import AlertModal from "@/components/AlertModal.jsx";
+import AlertModal from "./AlertModal.jsx";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
