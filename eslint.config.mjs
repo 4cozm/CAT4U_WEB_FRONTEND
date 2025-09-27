@@ -36,6 +36,7 @@ export default [
       "import/resolver": {
         // @/* 별칭 쓰는 경우
         node: { extensions: [".js", ".jsx"] },
+        alias: { map: [["@", "./"]], extensions: [".js", ".jsx"] },
       },
     },
     rules: {
