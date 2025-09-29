@@ -4,10 +4,11 @@ import React, { useRef } from "react";
 import BlockNoteRestore from "../../components/BlockNoteRestore.jsx";
 import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
+import { fetchWithAuth } from '@/utils/fetchWithAuth.js'
 
 /* DisablePageScroll
-   - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
-   - `overflow: hidden`을 html/body에 강제로 적용
+  - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
+  - `overflow: hidden`을 html/body에 강제로 적용
    - 언마운트 시 기존 상태 복원 */
 function DisablePageScroll() {
   React.useEffect(() => {
@@ -21,6 +22,23 @@ function DisablePageScroll() {
     };
   }, []);
   return null;
+}
+
+const handleSave = async () => {
+  console.log("click save");
+
+  const payload = {
+    character_id: 2122760050,
+    board_title: 'hi',
+    board_content: 'cont',
+  };
+
+  await fetchWithAuth("/api/guide/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
 }
 
 export default function PageClient() {
@@ -50,6 +68,7 @@ export default function PageClient() {
           <button
             className="px-4 py-2 rounded-lg bg-blue-500/80 text-white hover:bg-blue-400 transition"
             type="button"
+            onClick={handleSave}
           >
             저장
           </button>
