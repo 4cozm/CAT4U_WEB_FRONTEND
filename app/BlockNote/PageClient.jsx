@@ -5,6 +5,7 @@ import BlockNoteRestore from "../../components/BlockNoteRestore.jsx";
 import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
 import { fetchWithAuth } from '@/utils/fetchWithAuth.js'
+import { useToast } from "@/hooks/useToast";
 
 /* DisablePageScroll
   - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
@@ -24,24 +25,35 @@ function DisablePageScroll() {
   return null;
 }
 
-const handleSave = async () => {
-  console.log("click save");
-
-  const payload = {
-    board_title: 'hi',
-    board_content: 'cont',
-  };
-
-  await fetchWithAuth("/api/guide/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-}
-
 export default function PageClient() {
   const editorRef = useRef(null);
+  const { pushToast } = useToast();
+
+  const handleSave = async () => {
+    console.log("click save");
+
+    const payload = {
+      board_title: 'hi',
+      board_content: 'cont',
+    };
+
+    try {
+      const data = await fetchWithAuth("/api/guide/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      console.log(data.status);
+      pushToast({ type: "success", message: `글 ${data.board_title} 생성에 성공하였습니다` });
+      window.location.href = '/guide';
+    } catch (err) {
+      if (err?.status && [400, 500].includes(err.status)) {
+        pushToast({ type: "error", message: "서버 통신에 문제가 발생하였습니다." });
+      } else {
+        pushToast({ type: "error", message: "알 수 없는 오류가 발생했습니다." });
+      }
+    }
+  }
 
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col px-4 pt-4 overflow-hidden">
