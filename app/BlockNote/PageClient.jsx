@@ -28,7 +28,6 @@ const handleSave = async () => {
   console.log("click save");
 
   const payload = {
-    character_id: 2122760050,
     board_title: 'hi',
     board_content: 'cont',
   };
