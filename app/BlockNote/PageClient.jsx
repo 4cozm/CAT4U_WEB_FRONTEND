@@ -5,6 +5,7 @@ import BlockNoteRestore from "../../components/BlockNoteRestore.jsx";
 import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
 import { fetchWithAuth } from '@/utils/fetchWithAuth.js'
+import { detectXssPatterns } from '@/utils/defenseXSS.js'
 import { useToast } from "@/hooks/useToast";
 import * as yup from "yup";
 
@@ -30,11 +31,21 @@ const schema = yup.object({
   board_title: yup
     .string()
     .transform((v) => (v ?? "").trim())
-    .required("제목을 입력해주세요."),
-  board_content: yup
+    .required("제목을 입력해주세요.")
+    .test("xss-title", "제목에 허용되지 않는 문자열이 포함되어 있습니다.", (value) => {
+      const { ok } = detectXssPatterns(value || "");
+      return ok;
+    }),
+  // 현재 require 검증 기능은 동작하지 않음. why? : 내용을 넣지 않더라도, object 가 기본적으로 존재함. 
+  // -> 필요시 내용만 뽑는 json parser 추가
+  board_content: yup     
     .string()
     .transform((v) => (v ?? "").trim())
-    .required("내용을 입력해주세요."),
+    .required("내용을 입력해주세요.")
+    .test("xss-content", "내용에 허용되지 않는 문자열이 포함되어 있습니다.", (value) => {
+      const { ok } = detectXssPatterns(value || {});
+      return ok;
+    }),
 });
 
 export default function PageClient() {
@@ -53,6 +64,20 @@ export default function PageClient() {
       board_title,
       board_content,
     };
+
+    // 2) yup 검증
+    try {
+      await schema.validate(payload, { abortEarly: false });
+    } catch (validationErr) {
+      // 에러 메시지 모아서 토스트
+      const messages = validationErr?.inner?.length
+        ? [...new Set(validationErr.inner.map((e) => e.message))]
+        : [validationErr.message];
+      messages.forEach((m) =>
+        pushToast({ type: "warning", message: m || "입력값을 확인해주세요." })
+      );
+      return;
+    }
 
     try {
       const data = await fetchWithAuth("/api/guide/", {
