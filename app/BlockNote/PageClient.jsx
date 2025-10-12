@@ -6,6 +6,7 @@ import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
 import EditorHost from "./EditorHost";
 import { fetchWithAuth } from '@/utils/fetchWithAuth.js'
 import { useToast } from "@/hooks/useToast";
+import * as yup from "yup";
 
 /* DisablePageScroll
   - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
@@ -25,16 +26,32 @@ function DisablePageScroll() {
   return null;
 }
 
+const schema = yup.object({
+  board_title: yup
+    .string()
+    .transform((v) => (v ?? "").trim())
+    .required("제목을 입력해주세요."),
+  board_content: yup
+    .string()
+    .transform((v) => (v ?? "").trim())
+    .required("내용을 입력해주세요."),
+});
+
 export default function PageClient() {
   const editorRef = useRef(null);
+  const titleRef = useRef(null);
   const { pushToast } = useToast();
 
   const handleSave = async () => {
     console.log("click save");
+    // 1) 입력값 수집
+    const board_title = (titleRef.current?.value ?? "").trim();
+    const board_content = JSON.stringify(editorRef.current?.getJSON?.() ?? {});
 
+    console.log(`제목 : ${board_title}, 내용 : ${board_content}`);
     const payload = {
-      board_title: 'hi',
-      board_content: 'cont',
+      board_title,
+      board_content,
     };
 
     try {
@@ -43,7 +60,6 @@ export default function PageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      console.log(data.status);
       pushToast({ type: "success", message: `글 ${data.board_title} 생성에 성공하였습니다` });
       window.location.href = '/guide';
     } catch (err) {
@@ -88,6 +104,7 @@ export default function PageClient() {
 
       {/* 제목 입력 필드 */}
       <input
+        ref={titleRef}
         type="text"
         placeholder="글 제목을 입력하세요"
         className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-white/20"
