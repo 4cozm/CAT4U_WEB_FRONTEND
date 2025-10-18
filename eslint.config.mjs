@@ -24,7 +24,8 @@ const eslintConfig = [
     settings: {
       "import/resolver": {
         node: { extensions: [".js", ".jsx"] },
-        alias: { map: [["@", "./src"]], extensions: [".js", ".jsx"] },
+        alias: { map: [["@", "./"]], extensions: [".js", ".jsx"] },
+
       },
     },
     rules: {
