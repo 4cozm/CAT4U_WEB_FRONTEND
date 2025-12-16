@@ -1,6 +1,6 @@
 // app/BlockNote/EditorInner.jsx
 "use client";
-import { uploadFile } from "@/utils/uploadFile.js";
+import { uploadFile } from "@/utils/upload/uploadFile.js";
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { en } from "@blocknote/core/locales"; // ← locale 가져와서 placeholder만 한글로
@@ -40,7 +40,24 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
   const editor = useCreateBlockNote({
     schema,
     dictionary,
-    uploadFile,
+    uploadFile: async (file) => {
+      // 업로드가 트리거된 순간의 블록 id 확보
+      const blockId = editor.getTextCursorPosition().block.id;
+
+      try {
+        return await uploadFile(file);
+      } catch (err) {
+        const msg = err?.message ? String(err.message) : "unknown error";
+
+        // 로딩 블록을 에러 문구로 교체
+        setTimeout(() => {
+          editor.replaceBlocks([blockId], [{ type: "paragraph", content: `업로드 실패: ${msg}` }]);
+        }, 0);
+
+        // BlockNote에게는 "URL"을 반환해서 로딩을 끝내게 함
+        return "/state-image/fail.webp";
+      }
+    },
     initialContent: serverContent,
   });
 
