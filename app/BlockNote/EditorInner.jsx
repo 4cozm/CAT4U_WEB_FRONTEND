@@ -1,6 +1,6 @@
 // app/BlockNote/EditorInner.jsx
 "use client";
-import { uploadFile } from "@/utils/upload/uploadFile.js";
+import { uploadFile } from "../../utils/upload/uploadFile.js";
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { en } from "@blocknote/core/locales"; // ← locale 가져와서 placeholder만 한글로

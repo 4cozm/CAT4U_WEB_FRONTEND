@@ -1,6 +1,5 @@
 "use client";
 import { createReactInlineContentSpec } from "@blocknote/react";
-import { FiHelpCircle } from "react-icons/fi";
 
 const FALLBACK_QUESTION_SVG =
   "data:image/svg+xml;utf8," +
@@ -11,20 +10,6 @@ const FALLBACK_QUESTION_SVG =
     </svg>`
   );
 
-// fallback도 기본 크기 정책(1em + 3px, scale 반영)을 따라가게 정렬
-const FallbackIcon = ({ scale = 1 }) => (
-  <span
-    style={{
-      display: "inline-block",
-      verticalAlign: "-0.2em",
-      lineHeight: 0,
-      fontSize: `calc(1em * ${Number(scale) || 1} + 3px)`,
-    }}
-    aria-hidden="true"
-  >
-    <FiHelpCircle />
-  </span>
-);
 
 const inlineEmoji = createReactInlineContentSpec(
   {
