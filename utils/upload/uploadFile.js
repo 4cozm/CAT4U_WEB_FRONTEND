@@ -16,7 +16,12 @@ export async function uploadFile(file) {
 
   // 1. 서버로부터 Presigned POST 데이터(url, fields)를 받아옴
   const data = await requestS3UploadUrl(meta);
-  const { uploadUrl, fields, fileUrl } = data; 
+  const { uploadUrl, fields, fileUrl, reused } = data;
+
+  if (reused) {
+    // 이미 존재하는 파일이면 업로드 없이 바로 URL 반환
+    return fileUrl;
+  }
 
   if (!uploadUrl || !fileUrl || !fields) {
     throw new Error("presign 발급 응답 에러 발생");
@@ -38,7 +43,7 @@ export async function uploadFile(file) {
     uploadUrl,
     {
       method: "POST",
-      body: formData, 
+      body: formData,
     },
     30000
   );
