@@ -1,6 +1,6 @@
-import CategoryPills from '@/components/CategoryPills';
-import GlassCard from '@/components/GlassCard';
-import ListCard from '@/components/ListCard.jsx';
+import CategoryPills from '../components/CategoryPills';
+import GlassCard from '../components/GlassCard';
+import ListCard from '../components/ListCard.jsx';
 import { AiOutlineLike } from 'react-icons/ai';
 import { FaHotjar } from 'react-icons/fa';
 import { IoTimeOutline } from 'react-icons/io5';
