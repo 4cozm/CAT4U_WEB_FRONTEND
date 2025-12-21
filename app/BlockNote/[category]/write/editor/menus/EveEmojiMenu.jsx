@@ -2,7 +2,7 @@
 import { SuggestionMenuController, useBlockNoteEditor } from "@blocknote/react";
 import Image from "next/image";
 import React from "react";
-import EmojiPicker from "./EmojiPicker.jsx";
+import EmojiPicker from "../../../../EmojiPicker.jsx";
 
 export default function EveEmojiMenu() {
   const editor = useBlockNoteEditor();

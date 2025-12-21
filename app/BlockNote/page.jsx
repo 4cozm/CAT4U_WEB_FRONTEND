@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import PageClient from "./PageClient.jsx";
+import PageClient from "./[category]/write/PageClient.jsx";
 
 export default function Page() {
   return (

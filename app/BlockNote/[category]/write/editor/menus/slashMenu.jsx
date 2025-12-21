@@ -3,7 +3,7 @@
 import { SuggestionMenuController, getDefaultReactSlashMenuItems, useBlockNoteEditor } from "@blocknote/react";
 import Image from "next/image";
 import React from "react";
-import EmojiPicker from "./EmojiPicker.jsx";
+import EmojiPicker from "../../../../EmojiPicker.jsx";
 
 /* 공용 렌더러: key = index 로 안전 */
 function SlashMenuList({ items, selectedIndex, onItemClick }) {

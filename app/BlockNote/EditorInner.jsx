@@ -8,8 +8,8 @@ import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import React, { forwardRef, useImperativeHandle } from "react";
 import { uploadFile } from "../../utils/upload/uploadFile.js";
-import EveEmojiMenu from "./EveEmojiMenu.jsx";
-import inlineEmoji from "./InlineEmojiSpec.jsx";
+import EveEmojiMenu from "./[category]/write/editor/menus/EveEmojiMenu.jsx";
+import inlineEmoji from "./[category]/write/editor/specs/InlineEmojiSpec.jsx";
 
 const EditorInner = forwardRef(function EditorInner(props, ref) {
   const { serverContent } = props || {};

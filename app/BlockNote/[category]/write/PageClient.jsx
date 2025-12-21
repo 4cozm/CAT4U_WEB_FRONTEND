@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useRef } from "react";
-import BlockNoteRestore from "../../components/BlockNoteRestore.jsx";
-import BlockNoteTempSave from "../../components/BlockNoteTempSave.jsx";
-import EditorHost from "./EditorHost";
-import { fetchWithAuth } from '@/utils/fetchWithAuth.js'
-import { detectXssPatterns } from '@/utils/defenseXSS.js'
 import { useToast } from "@/hooks/useToast";
+import { detectXssPatterns } from "@/utils/defenseXSS.js";
+import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
+import React, { useRef } from "react";
 import * as yup from "yup";
+import BlockNoteRestore from "../../../../components/BlockNoteRestore.jsx";
+import BlockNoteTempSave from "../../../../components/BlockNoteTempSave.jsx";
+import EditorHost from "./editor/EditorHost.jsx";
 
 /* DisablePageScroll
   - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
@@ -36,9 +36,9 @@ const schema = yup.object({
       const { ok } = detectXssPatterns(value || "");
       return ok;
     }),
-  // 현재 require 검증 기능은 동작하지 않음. why? : 내용을 넣지 않더라도, object 가 기본적으로 존재함. 
+  // 현재 require 검증 기능은 동작하지 않음. why? : 내용을 넣지 않더라도, object 가 기본적으로 존재함.
   // -> 필요시 내용만 뽑는 json parser 추가
-  board_content: yup     
+  board_content: yup
     .string()
     .transform((v) => (v ?? "").trim())
     .required("내용을 입력해주세요.")
@@ -73,9 +73,7 @@ export default function PageClient() {
       const messages = validationErr?.inner?.length
         ? [...new Set(validationErr.inner.map((e) => e.message))]
         : [validationErr.message];
-      messages.forEach((m) =>
-        pushToast({ type: "warning", message: m || "입력값을 확인해주세요." })
-      );
+      messages.forEach((m) => pushToast({ type: "warning", message: m || "입력값을 확인해주세요." }));
       return;
     }
 
@@ -86,7 +84,7 @@ export default function PageClient() {
         body: JSON.stringify(payload),
       });
       pushToast({ type: "success", message: `글 ${data.board_title} 생성에 성공하였습니다` });
-      window.location.href = '/guide';
+      window.location.href = "/guide";
     } catch (err) {
       if (err?.status && [400, 500].includes(err.status)) {
         pushToast({ type: "error", message: "서버 통신에 문제가 발생하였습니다." });
@@ -94,7 +92,7 @@ export default function PageClient() {
         pushToast({ type: "error", message: "알 수 없는 오류가 발생했습니다." });
       }
     }
-  }
+  };
 
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col px-4 pt-4 overflow-hidden">
