@@ -1,6 +1,5 @@
 // app/BlockNote/EditorInner.jsx
 "use client";
-import { uploadFile } from "../../utils/upload/uploadFile.js";
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
 import "@blocknote/core/fonts/inter.css";
 import { en } from "@blocknote/core/locales"; // ← locale 가져와서 placeholder만 한글로
@@ -8,6 +7,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import "@blocknote/shadcn/style.css";
 import React, { forwardRef, useImperativeHandle } from "react";
+import { uploadFile } from "../../utils/upload/uploadFile.js";
 import EveEmojiMenu from "./EveEmojiMenu.jsx";
 import inlineEmoji from "./InlineEmojiSpec.jsx";
 
@@ -68,9 +68,24 @@ const EditorInner = forwardRef(function EditorInner(props, ref) {
       setJSON: (doc) => {
         if (!editor || !doc) return;
         try {
-          if (typeof editor.setContent === "function") editor.setContent(doc);
-          else editor.replaceBlocks(editor.document, doc);
-        } catch {}
+          // 최신 BlockNote는 replaceBlocks를 주로 사용합니다.
+          // 기존 내용을 지우고 새로운 내용을 넣는 로직입니다.
+          if (typeof editor.setContent === "function") {
+            editor.setContent(doc);
+          } else {
+            editor.replaceBlocks(editor.document, doc);
+          }
+        } catch (error) {
+          // 1. 개발 환경에서 원인 파악을 위한 로깅
+          console.error("에디터 콘텐츠를 설정하는 중 오류가 발생했습니다:", error);
+          try {
+            editor.replaceBlocks(editor.document, [
+              { type: "paragraph", content: "콘텐츠를 불러오는 데 실패했습니다." },
+            ]);
+          } catch (fallbackError) {
+            console.error("에러 복구 도중 추가 오류 발생:", fallbackError);
+          }
+        }
       },
     }),
     [editor]
