@@ -3,11 +3,15 @@
 import { useToast } from "@/hooks/useToast";
 import { detectXssPatterns } from "@/utils/defenseXSS.js";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
-import React, { useRef } from "react";
+import dynamic from "next/dynamic";
+import { useParams } from "next/navigation.js";
+import React, { useEffect, useRef, useState } from "react";
 import * as yup from "yup";
-import BlockNoteRestore from "../../../../components/BlockNoteRestore.jsx";
-import BlockNoteTempSave from "../../../../components/BlockNoteTempSave.jsx";
-import EditorHost from "./editor/EditorHost.jsx";
+import BlockNoteRestore from "../../../components/BlockNoteRestore.jsx";
+import BlockNoteTempSave from "../../../components/BlockNoteTempSave.jsx";
+
+// ✅ BlockNote는 정적 export 프리렌더에서 터질 수 있으므로 No-SSR 로드
+const EditorHost = dynamic(() => import("../../blockNote/EditorHost.jsx"), { ssr: false });
 
 /* DisablePageScroll
   - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
@@ -36,8 +40,6 @@ const schema = yup.object({
       const { ok } = detectXssPatterns(value || "");
       return ok;
     }),
-  // 현재 require 검증 기능은 동작하지 않음. why? : 내용을 넣지 않더라도, object 가 기본적으로 존재함.
-  // -> 필요시 내용만 뽑는 json parser 추가
   board_content: yup
     .string()
     .transform((v) => (v ?? "").trim())
@@ -49,18 +51,24 @@ const schema = yup.object({
 });
 
 export default function PageClient() {
+  const params = useParams();
+  const category = params.category;
+
   const editorRef = useRef(null);
   const titleRef = useRef(null);
   const { pushToast } = useToast();
 
+  // ✅ ssr:false만으로도 대부분 해결되지만, 안전하게 마운트 이후에만 렌더
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const handleSave = async () => {
-    console.log("click save");
     // 1) 입력값 수집
     const board_title = (titleRef.current?.value ?? "").trim();
     const board_content = JSON.stringify(editorRef.current?.getJSON?.() ?? {});
 
-    console.log(`제목 : ${board_title}, 내용 : ${board_content}`);
     const payload = {
+      type: String(category || "").toUpperCase(), // ✅ 서버 enum과 맞추기
       board_title,
       board_content,
     };
@@ -69,7 +77,6 @@ export default function PageClient() {
     try {
       await schema.validate(payload, { abortEarly: false });
     } catch (validationErr) {
-      // 에러 메시지 모아서 토스트
       const messages = validationErr?.inner?.length
         ? [...new Set(validationErr.inner.map((e) => e.message))]
         : [validationErr.message];
@@ -78,13 +85,15 @@ export default function PageClient() {
     }
 
     try {
-      const data = await fetchWithAuth("/api/guide/", {
+      const data = await fetchWithAuth("/api/board/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       pushToast({ type: "success", message: `글 ${data.board_title} 생성에 성공하였습니다` });
-      window.location.href = "/guide";
+
+      // ✅ 템플릿 문자열 버그 수정 + 라우트 일관성
+      window.location.href = `/${category}`;
     } catch (err) {
       if (err?.status && [400, 500].includes(err.status)) {
         pushToast({ type: "error", message: "서버 통신에 문제가 발생하였습니다." });
@@ -95,7 +104,7 @@ export default function PageClient() {
   };
 
   return (
-    <main className="mx-auto flex h-screen max-w-3xl flex-col px-4 pt-4 overflow-hidden">
+    <main className="mx-auto flex h-screen max-w-3xl flex-col overflow-hidden px-4 pt-4">
       <DisablePageScroll />
 
       {/* 헤더: 제목 + 버튼 영역 */}
@@ -105,7 +114,7 @@ export default function PageClient() {
           {/* 임시 저장 */}
           <BlockNoteTempSave content={() => editorRef.current?.getJSON?.()} />
 
-          {/* 임시 저장 복원 (useSearchParams 사용) */}
+          {/* 임시 저장 복원 */}
           <BlockNoteRestore
             onRestore={(doc) => {
               const api = editorRef.current;
@@ -116,7 +125,7 @@ export default function PageClient() {
 
           {/* 저장 버튼 */}
           <button
-            className="px-4 py-2 rounded-lg bg-blue-500/80 text-white hover:bg-blue-400 transition"
+            className="rounded-lg bg-blue-500/80 px-4 py-2 text-white transition hover:bg-blue-400"
             type="button"
             onClick={handleSave}
           >
@@ -134,8 +143,8 @@ export default function PageClient() {
       />
 
       {/* 에디터 카드 */}
-      <div className="h-[60vh] rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur overflow-visible">
-        <EditorHost ref={editorRef} />
+      <div className="h-[60vh] overflow-visible rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur">
+        {mounted ? <EditorHost ref={editorRef} /> : null}
       </div>
     </main>
   );

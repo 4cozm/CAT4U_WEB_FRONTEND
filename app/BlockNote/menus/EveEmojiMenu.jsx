@@ -1,16 +1,15 @@
 "use client";
-import { SuggestionMenuController, useBlockNoteEditor } from "@blocknote/react";
+import { SuggestionMenuController } from "@blocknote/react";
 import Image from "next/image";
 import React from "react";
-import EmojiPicker from "../../../../EmojiPicker.jsx";
+import EmojiPicker from "../EmojiPicker.jsx";
 
-export default function EveEmojiMenu() {
-  const editor = useBlockNoteEditor();
+export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [emojiList, setEmojiList] = React.useState([]);
-  const cursorBlockIdRef = React.useRef(null); // 텍스트 커서가 있던 블록 ID만 저장
+  const cursorBlockIdRef = React.useRef(null);
 
-  // manifest 로드 (public/manifest.json)
+  // 1. Effect는 최상단 유지
   React.useEffect(() => {
     let alive = true;
     (async () => {
@@ -27,10 +26,8 @@ export default function EveEmojiMenu() {
     };
   }, []);
 
-  if (!editor) return null;
-
-  // 메뉴 아이템 클릭 시점: 트리거 문자가 정리된 다음 tick에 커서 위치 스냅샷
   const openPickerAfterCleanup = React.useCallback(() => {
+    if (!editor) return;
     const run = () => {
       try {
         const pos = editor.getTextCursorPosition?.();
@@ -48,12 +45,12 @@ export default function EveEmojiMenu() {
       {
         title: "Insert EVE Emoji",
         group: "Media",
-        aliases: ["eve", "emoji", "이모지", ";"],
+        aliases: ["eve", "emoji", "이모지", triggerCharacter],
         icon: <Image src="/eve-emoji.png" alt="EVE Emoji" width={18} height={18} />,
         onItemClick: openPickerAfterCleanup,
       },
     ],
-    [openPickerAfterCleanup]
+    [openPickerAfterCleanup, triggerCharacter]
   );
 
   const getItems = React.useCallback(
@@ -70,7 +67,6 @@ export default function EveEmojiMenu() {
     [items]
   );
 
-  // 경로 정규화
   const normalizeUrl = React.useCallback((u) => {
     if (!u) return "";
     if (/^https?:\/\//i.test(u) || u.startsWith("data:")) return u;
@@ -79,56 +75,61 @@ export default function EveEmojiMenu() {
   }, []);
 
   const ensureEditableCursor = React.useCallback(() => {
+    if (!editor) return;
     editor.focus?.();
 
-    // 문서가 비었으면 문단 하나 만들고 커서 이동
     if (!editor.document || editor.document.length === 0) {
       try {
-        editor.replaceBlocks(editor.document, [{ type: "paragraph", content: "" }]); // 전체 교체로 안전 생성
-      } catch {}
+        editor.replaceBlocks(editor.document, [{ type: "paragraph", content: "" }]);
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    // 저장한 커서 블록이 있으면 그 끝으로 위치
     const targetId = cursorBlockIdRef.current;
     if (targetId) {
       try {
         editor.setTextCursorPosition?.(targetId, "end");
         return;
-      } catch {}
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    // 폴백: 첫 블록 끝
     try {
       const first = editor.document?.[0];
       if (first) editor.setTextCursorPosition?.(first, "end");
-    } catch {}
+    } catch (err) {
+      console.log(err);
+    }
   }, [editor]);
 
   const handlePick = React.useCallback(
     (emoji) => {
+      if (!editor) return;
       const raw = emoji?.url ?? emoji?.src ?? emoji?.thumb ?? "";
       const src = normalizeUrl(raw);
       const alt = emoji?.name || "emoji";
 
       ensureEditableCursor();
 
-      // 1) 인라인 삽입 (권장 API)
       try {
-        editor.insertInlineContent([{ type: "emoji", props: { src, alt } }, " "], { updateSelection: true }); // ← 공식 예제와 동일 패턴
+        editor.insertInlineContent([{ type: "emoji", props: { src, alt } }, " "], { updateSelection: true });
         setPickerOpen(false);
         cursorBlockIdRef.current = null;
         return;
       } catch {
-        /* 계속 폴백 */
+        /* 폴백 로직 */
       }
 
-      // 2) 실패 시 이미지 블록 폴백(참조 블록 지정 필수)
       try {
         const refBlock = editor.getTextCursorPosition?.()?.block ?? editor.document?.[editor.document.length - 1];
         if (refBlock) {
           editor.insertBlocks([{ type: "image", props: { url: src, name: alt } }], refBlock, "after");
         }
-      } catch {}
+      } catch (err) {
+        console.error(err);
+      }
 
       setPickerOpen(false);
       cursorBlockIdRef.current = null;
@@ -136,9 +137,11 @@ export default function EveEmojiMenu() {
     [editor, normalizeUrl, ensureEditableCursor]
   );
 
+  if (!editor) return null;
+
   return (
     <>
-      <SuggestionMenuController editor={editor} triggerCharacter=";" getItems={getItems} />
+      <SuggestionMenuController editor={editor} triggerCharacter={triggerCharacter} getItems={getItems} />
       {pickerOpen && <EmojiPicker list={emojiList} onPick={handlePick} onClose={() => setPickerOpen(false)} />}
     </>
   );

@@ -47,16 +47,26 @@ export default function Header() {
         const data = await fetchWithAuth("/api/esi/me");
         setProfile(data);
       } catch (err) {
+        if (err?.status === 401) {
+          pushToast({
+            type: "error",
+            message: "인증 만료! 로그인 하러가라냥",
+          });
+          return;
+        }
+
+        // 3. ESI 서버 장애 (502, 503, 504)
         if (err?.status && [502, 503, 504].includes(err.status)) {
           if (isDowntimeNow()) {
             pushToast({
               type: "error",
-              message: "현재 EVE 서버 DT일지도?.. 점검 후에도 그러면 알려주세요.",
+              message: "DT 시간이다냥..햄스터 갈아끼울꺼니 기다리라냥",
             });
           } else {
-            pushToast({ type: "error", message: "EVE 서버에 일시적 장애가 발생했습니다." });
+            pushToast({ type: "error", message: "EVE서버가 대답하지 않는다냥." });
           }
         } else {
+          // 4. 기타 알 수 없는 오류
           pushToast({ type: "error", message: "알 수 없는 오류가 발생했습니다." });
         }
       }
