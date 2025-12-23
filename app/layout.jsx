@@ -1,3 +1,5 @@
+import "@blocknote/core/style.css";
+import "@blocknote/shadcn/style.css";
 import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";

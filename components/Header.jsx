@@ -67,7 +67,7 @@ export default function Header() {
           }
         } else {
           // 4. 기타 알 수 없는 오류
-          pushToast({ type: "error", message: "알 수 없는 오류가 발생했습니다." });
+          pushToast({ type: "error", message: "백엔드 서버와 통신 할 수 없습니다." });
         }
       }
     })();

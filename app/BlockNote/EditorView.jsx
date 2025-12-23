@@ -2,9 +2,8 @@
 
 import React from "react";
 import { BlockNoteView } from "@blocknote/shadcn";
-import "@blocknote/shadcn/style.css";
 
-import SlashMenu from "./menus/slashMenu.jsx";
+import SlashMenu from "./menus/slashMenu.jsx"; //TODO 고치기
 import EveEmojiMenu from "./menus/EveEmojiMenu.jsx";
 
 export default function EditorView({ editor }) {
@@ -13,12 +12,10 @@ export default function EditorView({ editor }) {
   return (
     <div className="bn-scope h-full min-h-0 overflow-y-auto scrollbar-none overscroll-contain p-4">
       <BlockNoteView
-        editor={editor}
-        slashMenu={false}            
+        editor={editor}            
         formattingToolbar={false}
         className="!bg-transparent !p-0"
       >
-        <SlashMenu editor={editor} />
         <EveEmojiMenu editor={editor} triggerCharacter=";" />
       </BlockNoteView>
     </div>
