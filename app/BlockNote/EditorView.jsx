@@ -3,7 +3,7 @@
 import React from "react";
 import { BlockNoteView } from "@blocknote/shadcn";
 
-import SlashMenu from "./menus/slashMenu.jsx"; //TODO 고치기
+
 import EveEmojiMenu from "./menus/EveEmojiMenu.jsx";
 
 export default function EditorView({ editor }) {
