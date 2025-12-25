@@ -13,23 +13,6 @@ import BlockNoteTempSave from "../../../components/BlockNoteTempSave.jsx";
 // ✅ BlockNote는 정적 export 프리렌더에서 터질 수 있으므로 No-SSR 로드
 const EditorHost = dynamic(() => import("../../blockNote/EditorHost.jsx"), { ssr: false });
 
-/* DisablePageScroll
-  - BlockNotePage 활성화 시, 브라우저 전체 스크롤을 막아줌
-  - `overflow: hidden`을 html/body에 강제로 적용
-   - 언마운트 시 기존 상태 복원 */
-function DisablePageScroll() {
-  React.useEffect(() => {
-    const htmlPrev = document.documentElement.style.overflow;
-    const bodyPrev = document.body.style.overflow;
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.documentElement.style.overflow = htmlPrev;
-      document.body.style.overflow = bodyPrev;
-    };
-  }, []);
-  return null;
-}
 
 const schema = yup.object({
   board_title: yup
@@ -104,8 +87,7 @@ export default function PageClient() {
   };
 
   return (
-    <main className="mx-auto flex h-screen max-w-3xl flex-col overflow-hidden px-4 pt-4">
-      <DisablePageScroll />
+    <section className="mx-auto flex max-w-3xl flex-col pt-4">
 
       {/* 헤더: 제목 + 버튼 영역 */}
       <div className="mb-4 flex items-center justify-between">
@@ -146,6 +128,6 @@ export default function PageClient() {
       <div className="h-[60vh] overflow-visible rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur">
         {mounted ? <EditorHost ref={editorRef} /> : null}
       </div>
-    </main>
+    </section>
   );
 }
