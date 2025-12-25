@@ -1,7 +1,7 @@
 "use client";
 
 import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@blocknote/core";
-import { en } from "@blocknote/core/locales";
+import { ko } from "@blocknote/core/locales";
 import { useCreateBlockNote } from "@blocknote/react";
 import React, { forwardRef, useImperativeHandle } from "react";
 
@@ -22,9 +22,9 @@ const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
 
   const dictionary = React.useMemo(
     () => ({
-      ...en,
+      ...ko,
       placeholders: {
-        ...en.placeholders,
+        ...ko.placeholders,
         emptyDocument: "여기에 입력하거나 '/'로 명령을, ':'로 이브 이모지를 사용하세요",
         default: "여기에 입력하거나 '/'로 명령을, ':'로 이브 이모지를 사용하세요",
         heading: "제목",
