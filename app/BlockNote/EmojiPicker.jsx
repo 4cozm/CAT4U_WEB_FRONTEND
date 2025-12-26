@@ -23,7 +23,9 @@ function getCatSub(e) {
   let p = String(pathLike);
   try {
     p = decodeURI(p);
-  } catch {}
+  } catch (err) {
+    console.error(err);
+  }
   p = p.replace(/^https?:\/\/[^/]+/i, "").split("?")[0];
   let parts = p.split("/").filter(Boolean);
   if (parts.length && /\.[a-z0-9]+$/i.test(parts[parts.length - 1])) parts.pop();

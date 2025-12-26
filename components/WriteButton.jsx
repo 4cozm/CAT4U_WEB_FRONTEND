@@ -8,7 +8,7 @@ import { TfiWrite } from "react-icons/tfi";
 
 export default function WriteButton({ category, className = '', children }) {
     const label = children ?? '글쓰기';
-    const href = `/BlockNote?category=${category}`;
+    const href = `/${category}/write`;
 
     return (
         <a
