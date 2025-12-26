@@ -1,10 +1,11 @@
 "use client";
 
+import { useAuth } from "@/components/AuthProvider";
 import NeumorphicButton from "@/components/NeumorphicButton";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { blockNoteSchema } from "../../../utils/blocknoteEmoji/schema.js";
 
@@ -46,9 +47,14 @@ export default function ReadClient({ category }) {
   const sp = useSearchParams();
   const id = sp.get("id");
 
+  const { isAdmin } = useAuth();
+
   const [error, setError] = useState("");
   const [data, setData] = useState(null); // 로딩 전 null, 로딩 후 object
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => setMounted(true), []);
 
   const isInvalid = !id;
@@ -57,7 +63,12 @@ export default function ReadClient({ category }) {
   const title = data?.board_title ?? "";
   const nickname = data?.nickname ?? data?.user?.nickname ?? "";
   const recommendCnt = data?.recommend_cnt ?? 0;
+
+  // 백엔드가 내려주는 owner 플래그 기반
   const owner = !!data?.owner;
+
+  // 수정/삭제 노출 조건: 작성자(owner) 또는 어드민
+  const canEdit = owner || !!isAdmin;
 
   const createdAt = fmtKST(data?.create_dt);
   const updatedAt = fmtKST(data?.updated_dt);
@@ -66,7 +77,6 @@ export default function ReadClient({ category }) {
   const blocks = useMemo(() => {
     const raw = data?.board_content;
     if (Array.isArray(raw) && raw.length > 0) return raw;
-    // 백엔드가 문자열(JSON string)로 줄 때도 대비
     if (typeof raw === "string") {
       try {
         const parsed = JSON.parse(raw);
@@ -95,7 +105,6 @@ export default function ReadClient({ category }) {
       .then((resp) => {
         if (!alive) return;
         const payload = resp?.data ?? resp;
-        // 백엔드가 { success:true, data: {...}} 형태면 여기서 한 번 더
         const board = payload?.data ?? payload;
         setData(board);
       })
@@ -109,15 +118,34 @@ export default function ReadClient({ category }) {
     };
   }, [category, id]);
 
-  // 핸들러는 UI만. 실제 API는 별도 검증한다고 했으니 여기서는 틀만 둠.
-  const handleDelete = () => {
-    // TODO: 실제 삭제 API 호출
-    // confirm UI는 나중에 넣어도 됨
-    alert("삭제는 아직 연결 안 됨");
+  const handleDelete = async () => {
+    if (!id) return;
+
+    const ok = window.confirm("정말 삭제할까?");
+    if (!ok) return;
+
+    try {
+      setDeleting(true);
+      setError("");
+
+      const resp = await fetchWithAuth(`/api/board/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+
+      const payload = resp?.data ?? resp;
+      const message = payload?.message ?? payload?.data?.message ?? "삭제 완료";
+
+      alert(message);
+
+      router.push(`/${encodeURIComponent(category)}`);
+    } catch (e) {
+      setError(String(e?.message || e));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const handleRecommend = () => {
-    // TODO: 실제 추천 API 호출
     alert("추천은 아직 연결 안 됨");
   };
 
@@ -131,7 +159,6 @@ export default function ReadClient({ category }) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      {/* 상단 헤더 */}
       <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -160,25 +187,30 @@ export default function ReadClient({ category }) {
             </div>
           </div>
 
-          {/* 액션 버튼 영역 */}
           <div className="flex shrink-0 items-center gap-2">
-            {owner ? (
+            {/* 추천 버튼은 항상 노출 */}
+            <NeumorphicButton label="추천" onClick={handleRecommend} variant="primary" />
+
+            {/* 수정/삭제는 owner 또는 admin만 */}
+            {canEdit && (
               <>
                 <NeumorphicButton
                   label="수정"
                   href={`/${encodeURIComponent(category)}/write?edit=1&id=${encodeURIComponent(id)}`}
                   variant="secondary"
                 />
-                <NeumorphicButton label="삭제" onClick={handleDelete} variant="accent" />
+                <NeumorphicButton
+                  label={deleting ? "삭제 중..." : "삭제"}
+                  onClick={handleDelete}
+                  variant="accent"
+                  disabled={deleting}
+                />
               </>
-            ) : (
-              <NeumorphicButton label="추천" onClick={handleRecommend} variant="primary" />
             )}
           </div>
         </div>
       </div>
 
-      {/* 본문 */}
       <div className="rounded-2xl bg-white/5 p-4">
         {mounted ? (
           <ReadOnlyEditor key={editorMountKey} blocks={blocks} />
