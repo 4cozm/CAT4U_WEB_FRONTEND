@@ -1,6 +1,9 @@
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 .text-base-color {
   color: var(--text);
@@ -118,4 +121,12 @@ body {
 ::-webkit-scrollbar {
   width: 0px; /* 세로 스크롤바 폭 */
   height: 0px; /* 가로 스크롤바 높이 */
+}
+
+:root {
+  --header-h: 88px; /* 실제 헤더 높이 */
+}
+
+body {
+  padding-top: var(--header-h);
 }

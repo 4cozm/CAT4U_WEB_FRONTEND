@@ -1,11 +1,12 @@
+// BlockNote/editor/SlashMenu.jsx
 "use client";
 
-import { SuggestionMenuController, getDefaultReactSlashMenuItems, useBlockNoteEditor } from "@blocknote/react";
+import { SuggestionMenuController, getDefaultReactSlashMenuItems } from "@blocknote/react";
 import Image from "next/image";
 import React from "react";
-import EmojiPicker from "./EmojiPicker.jsx";
+import EmojiPicker from "../EmojiPicker.jsx";
 
-/* 공용 렌더러: key = index 로 안전 */
+/* 공용 렌더러 */
 function SlashMenuList({ items, selectedIndex, onItemClick }) {
   return (
     <div className="z-50 max-h-72 w-[20rem] overflow-auto rounded-xl border border-white/10 bg-black/80 p-1 backdrop-blur">
@@ -37,19 +38,16 @@ function SlashMenuList({ items, selectedIndex, onItemClick }) {
   );
 }
 
-export default function SlashMenu() {
-  const editor = useBlockNoteEditor();
+export default function SlashMenu({ editor }) {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [emojiList, setEmojiList] = React.useState([]);
   const selectionRef = React.useRef(null);
 
-  // manifest 로드
   React.useEffect(() => {
     let alive = true;
     (async () => {
       try {
         const res = await fetch("/manifest.json", { cache: "force-cache" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         if (alive) setEmojiList(Array.isArray(data) ? data : []);
       } catch {
@@ -61,12 +59,10 @@ export default function SlashMenu() {
     };
   }, []);
 
-  if (!editor) return null;
-
-  // 3-1) '/'용: 기본 아이템 불러오되 'emoji' 관련은 제거
   const slashDefaults = React.useMemo(() => {
+    if (!editor) return [];
+
     const arr = getDefaultReactSlashMenuItems(editor) || [];
-    // title/aliases에 'emoji' 또는 '이모지'가 보이면 제외
     return arr.filter((it) => {
       const t = String(it?.title || "").toLowerCase();
       const hitTitle = t.includes("emoji") || t.includes("이모지");
@@ -91,7 +87,6 @@ export default function SlashMenu() {
     [slashDefaults]
   );
 
-  // 3-2) ':'용: 커스텀 이모지
   const colonItems = React.useMemo(
     () => [
       {
@@ -100,7 +95,7 @@ export default function SlashMenu() {
         aliases: ["eve", "emoji", "이모지", "우주선", ":"],
         icon: <Image src="/eve-emoji.png" alt="EVE Emoji" width={18} height={18} />,
         onItemClick: () => {
-          selectionRef.current = editor.getSelection?.() ?? null;
+          selectionRef.current = editor?.getSelection?.() ?? null;
           setPickerOpen(true);
         },
       },
@@ -122,9 +117,10 @@ export default function SlashMenu() {
     [colonItems]
   );
 
-  // 이모지 선택 → selection 복원 후 인라인 삽입(실패 시 ❓는 spec에서 처리)
   const handlePick = React.useCallback(
     (emoji) => {
+      if (!editor) return; // editor가 없으면 중단
+
       const src = emoji?.url || emoji?.src || emoji?.thumb;
       const alt = emoji?.name || "emoji";
 
@@ -144,9 +140,10 @@ export default function SlashMenu() {
     [editor]
   );
 
+  if (!editor) return null;
+
   return (
     <>
-      {/* '/' 기본: 우리 렌더러로 그리지만 실질은 기본 목록 */}
       <SuggestionMenuController
         editor={editor}
         triggerCharacter="/"
@@ -154,7 +151,6 @@ export default function SlashMenu() {
         suggestionMenuComponent={SlashMenuList}
       />
 
-      {/* ':' 커스텀: 이모지 */}
       <SuggestionMenuController
         editor={editor}
         triggerCharacter=":"

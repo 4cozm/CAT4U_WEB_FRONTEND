@@ -1,3 +1,5 @@
+import "@blocknote/core/style.css";
+import "@blocknote/shadcn/style.css";
 import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";
@@ -16,7 +18,7 @@ export default function RootLayout({ children }) {
         <BackgroundVideo />
         <ClientProviders>
           <Header />
-          <main className="relative mx-auto max-w-5xl px-4 pb-24 pt-28">{children}</main>
+          <main className="relative mx-auto max-w-5xl px-4 pb-24">{children}</main>
         </ClientProviders>
       </body>
     </html>

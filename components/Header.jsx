@@ -1,11 +1,10 @@
 "use client";
 
-import { useToast } from "@/hooks/useToast";
-import { fetchWithAuth } from "@/utils/fetchWithAuth";
+import { useAuth } from "@/components/AuthProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { MdClose, MdMenu } from "react-icons/md";
 import NavLink from "./NavLink";
@@ -25,43 +24,14 @@ const row = "flex items-center justify-between px-4 py-3 md:grid md:grid-cols-3"
 const mobilePanel = "md:hidden border-t border-white/50";
 const linkMobile = "link-underline rounded-xl px-3 py-2 text-base text-[var(--muted)] hover:text-[var(--primary)]";
 
-function isDowntimeNow() {
-  const now = new Date();
-  const utcMinutesOfDay = now.getUTCHours() * 60 + now.getUTCMinutes();
-  const start = 11 * 60; // 11:00 UTC
-  const end = 12 * 60; // 12:00 UTC
-  return utcMinutesOfDay >= start && utcMinutesOfDay < end;
-}
-
 export default function Header() {
   const pathname = usePathname();
-  const { pushToast } = useToast();
-  const [open, setOpen] = useState(false);
+  const { me, loadingMe } = useAuth();
 
-  const [profile, setProfile] = useState(null);
+  const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const data = await fetchWithAuth("/api/esi/me");
-        setProfile(data);
-      } catch (err) {
-        if (err?.status && [502, 503, 504].includes(err.status)) {
-          if (isDowntimeNow()) {
-            pushToast({
-              type: "error",
-              message: "현재 EVE 서버 DT일지도?.. 점검 후에도 그러면 알려주세요.",
-            });
-          } else {
-            pushToast({ type: "error", message: "EVE 서버에 일시적 장애가 발생했습니다." });
-          }
-        } else {
-          pushToast({ type: "error", message: "알 수 없는 오류가 발생했습니다." });
-        }
-      }
-    })();
-  }, [pushToast]);
+  const showProfileImage = !loadingMe && me?.ok && me?.portrait && !imgError;
 
   return (
     <header className={shell}>
@@ -79,6 +49,7 @@ export default function Header() {
               >
                 {open ? <MdClose size={22} /> : <MdMenu size={22} />}
               </button>
+
               <Link href="/" className="hidden md:inline-flex items-center">
                 <Image src="/favicon-origin.png" alt="CAT4U 로고" width={36} height={36} priority />
               </Link>
@@ -102,18 +73,18 @@ export default function Header() {
 
             {/* Right: Profile */}
             <div className="flex items-center justify-end gap-2">
-              {profile?.ok && !imgError ? (
+              {showProfileImage ? (
                 <>
                   <img
-                    src={profile.portrait}
-                    alt={profile.name}
-                    className="w-10 h-10 rounded-full object-cover"
+                    src={me.portrait}
+                    alt={me.name || "profile"}
+                    className="h-10 w-10 rounded-full object-cover"
                     onError={() => setImgError(true)}
                   />
-                  <span className="text-sm font-medium text-[var(--text)] hidden sm:inline">{profile.name}</span>
+                  <span className="hidden text-sm font-medium text-[var(--text)] sm:inline">{me.name}</span>
                 </>
               ) : (
-                <FaUserCircle className="w-10 h-10 text-[var(--muted)]" />
+                <FaUserCircle className="h-10 w-10 text-[var(--muted)]" />
               )}
             </div>
           </div>
