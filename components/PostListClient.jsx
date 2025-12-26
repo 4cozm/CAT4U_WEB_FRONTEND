@@ -1,4 +1,4 @@
-//카테고리를 기반으로 글 목록을 가져오는 컴포넌트
+// 카테고리를 기반으로 글 목록을 가져오는 컴포넌트
 
 "use client";
 
@@ -12,6 +12,13 @@ function toPageNumber(v) {
   const n = Number(v);
   if (!Number.isFinite(n) || n < 1) return 1;
   return Math.floor(n);
+}
+
+function formatDate(v) {
+  if (!v) return "";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return String(v);
+  return d.toLocaleString("ko-KR");
 }
 
 export default function PostListClient({ categoryParam, categoryId }) {
@@ -60,7 +67,18 @@ export default function PostListClient({ categoryParam, categoryId }) {
     );
   }
 
-  const posts = data.posts ?? [];
+  const rawPosts = data.posts ?? [];
+
+  // 서버 응답 -> UI에서 쓰기 좋은 형태로 변환
+  const posts = rawPosts.map((p) => ({
+    id: p.id,
+    title: p.board_title ?? "제목 없음",
+    authorName: p.nickname ?? "",
+    createdAt: p.create_dt ?? "",
+    corp: mapCorpName(p.user?.corp),
+    recommendCnt: Number.isFinite(Number(p.recommend_cnt)) ? Number(p.recommend_cnt) : 0,
+  }));
+
   const totalPages = data.totalPages ?? 1;
   const currentPage = data.currentPage ?? page;
 
@@ -75,15 +93,26 @@ export default function PostListClient({ categoryParam, categoryId }) {
         <ul className="divide-y divide-white/10">
           {posts.map((post) => (
             <li key={post.id} className="p-4 hover:bg-white/5">
-              <Link href={`/${categoryParam}/${post.id}`} className="block">
-                <div className="text-sm font-medium">{post.title ?? "제목 없음"}</div>
-                {post.createdAt || post.authorName ? (
-                  <div className="mt-1 text-xs text-white/60">
-                    {post.authorName ? `by ${post.authorName}` : ""}
-                    {post.authorName && post.createdAt ? " · " : ""}
-                    {post.createdAt ? String(post.createdAt) : ""}
+              <Link href={`/${categoryParam}/read?id=${encodeURIComponent(post.id)}`} className="block">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-medium">{post.title}</div>
+
+                    {(post.createdAt || post.authorName || post.corp) && (
+                      <div className="mt-1 text-xs text-white/60">
+                        {post.authorName ? `by ${post.authorName}` : ""}
+                        {post.authorName && post.corp ? " · " : ""}
+                        {post.corp ? `${post.corp}` : ""}
+                        {(post.authorName || post.corp) && post.createdAt ? " · " : ""}
+                        {post.createdAt ? formatDate(post.createdAt) : ""}
+                      </div>
+                    )}
                   </div>
-                ) : null}
+
+                  <div className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-xs text-white/80">
+                    👍 {post.recommendCnt}
+                  </div>
+                </div>
               </Link>
             </li>
           ))}
@@ -115,4 +144,17 @@ export default function PostListClient({ categoryParam, categoryId }) {
       </div>
     </GlassCard>
   );
+}
+
+// corp 매핑
+const CORP_NAME_MAP = {
+  98641311: "캣포유",
+  98616206: "대구",
+  98494391: "물고기",
+};
+
+function mapCorpName(corp) {
+  if (!corp) return "";
+  const key = String(corp);
+  return CORP_NAME_MAP[key] ?? "등록되지 않은 코퍼레이션";
 }

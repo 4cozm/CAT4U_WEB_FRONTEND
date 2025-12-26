@@ -1,20 +1,15 @@
-import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
+import { getCategoryParams } from "@/utils/categoryPath.js";
+import { Suspense } from "react";
 import ReadClient from "./ReadClient";
 
-export default async function Page({ searchParams, params }) {
-  const { id } = searchParams;
-  const { category } = params;
+export const generateStaticParams = getCategoryParams;
 
-  if (!id) return <div>잘못된 접근</div>;
+export default async function Page({ params }) {
+  const { category } = await params;
 
-  const data = await fetchWithAuth(`/api/guide/${category}?id=${id}`, { cache: "no-store" });
-
-  let contentJSON = [];
-  try {
-    contentJSON = JSON.parse(data.board_content);
-  } catch {
-    contentJSON = [];
-  }
-
-  return <ReadClient title={data.board_title} content={contentJSON} />;
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-3xl px-4 py-8 text-white/70">불러오는 중...</div>}>
+      <ReadClient category={category} />
+    </Suspense>
+  );
 }
