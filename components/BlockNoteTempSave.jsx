@@ -50,6 +50,7 @@ export default function BlockNoteTempSave({ content }) {
       alert(`임시저장 완료 (${key})`);
     } catch (e) {
       alert("임시저장 중 오류가 발생했습니다.");
+      console.log(e);
     }
   };
 

@@ -18,7 +18,9 @@ export default function BlockNoteRestore({ onRestore }) {
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (parsed?.content) setDraft(parsed);
-    } catch {}
+    } catch (err){
+      console.log(err);
+    }
   }, [key]);
 
   if (!draft) return null; // 초안 없으면 버튼 자체를 숨김
