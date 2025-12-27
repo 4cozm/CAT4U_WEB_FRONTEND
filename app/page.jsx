@@ -7,7 +7,7 @@ import { IoTimeOutline } from 'react-icons/io5';
 const latestPosts = [
     {
         id: 1,
-        title: '새 공지 — 알파 테스트 오픈',
+        title: '가짜 공지 — 알파 테스트 오픈',
         desc: '정적 Export 배포 가능',
         author: '관리자',
         category: '공지',
@@ -15,7 +15,7 @@ const latestPosts = [
     },
     {
         id: 2,
-        title: '패치 노트 0.1.1',
+        title: '가짜 패치 노트 0.1.1',
         desc: 'UI 소소한 개선',
         author: '운영팀',
         category: '업데이트',
@@ -23,7 +23,7 @@ const latestPosts = [
     },
     {
         id: 3,
-        title: '가이드: 초반 ISK 모으기',
+        title: '가짜 가이드: 초반 ISK 모으기',
         desc: '하이섹 미션 루트',
         author: 'EVEPlayer',
         category: '가이드',
@@ -31,46 +31,11 @@ const latestPosts = [
     },
     {
         id: 4,
-        title: '피팅: 카라칼 L2 런',
+        title: '가짜 피팅: 카라칼 L2 런',
         desc: '저예산 미사일',
         author: 'AlphaPilot',
         category: '피팅',
         likes: 17,
-    },
-];
-
-const popularPosts = [
-    {
-        id: 101,
-        title: '베속 — 드론 포커스',
-        desc: 'L3 미션 효율',
-        author: 'DroneMaster',
-        category: '피팅',
-        likes: 42,
-    },
-    {
-        id: 102,
-        title: '무역 루트 기본기',
-        desc: 'Jita↔Amarr',
-        author: 'TraderX',
-        category: '경제',
-        likes: 31,
-    },
-    {
-        id: 103,
-        title: '스캔 입문',
-        desc: '프로브 세팅',
-        author: 'ScannerY',
-        category: '가이드',
-        likes: 27,
-    },
-    {
-        id: 104,
-        title: '뉴마치 버튼 UX',
-        desc: '실험적',
-        author: 'UI연구원',
-        category: 'UX/UI',
-        likes: 19,
     },
 ];
 
