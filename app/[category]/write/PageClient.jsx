@@ -12,7 +12,7 @@ import BlockNoteTempSave from "../../../components/BlockNoteTempSave.jsx";
 
 const DBG = true;
 
-const EditorHost = dynamic(() => import("../../blockNote/EditorHost.jsx"), { ssr: false });
+const EditorHost = dynamic(() => import("@/app/BlockNote/EditorHost.jsx"), { ssr: false });
 
 const schema = yup.object({
   board_title: yup
