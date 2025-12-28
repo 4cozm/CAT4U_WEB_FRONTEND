@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/useToast";
 import { detectXssPatterns } from "@/utils/defenseXSS.js";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useParams, useSearchParams } from "next/navigation.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as yup from "yup";
@@ -34,6 +35,7 @@ const schema = yup.object({
 });
 
 export default function PageClient() {
+  const router = useRouter();
   const params = useParams();
   const category = params.category;
 
@@ -184,20 +186,19 @@ export default function PageClient() {
       const url = isEdit ? `/api/board/${encodeURIComponent(id)}` : "/api/board/";
       const method = isEdit ? "PATCH" : "POST";
 
-      const data = await fetchWithAuth(url, {
+      const result = await fetchWithAuth(url, {
         method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
       pushToast({
         type: "success",
-        message: isEdit ? "수정에 성공했습니다." : `글 ${data.board_title} 생성에 성공하였습니다`,
+        message: isEdit ? "수정에 성공했습니다." : `게시글 : ${result.data.board_title} 생성에 성공하였습니다`,
       });
 
-      window.location.href = `/${category}`;
+      router.push(`/${category}`);
     } catch (err) {
-      const msg = err?.data?.message || err?.message || "서버 통신에 문제가 발생하였습니다.";
+      const msg = err?.result?.message || err?.message || "서버 통신에 문제가 발생하였습니다.";
       pushToast({ type: "error", message: msg });
     }
   };
