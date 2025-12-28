@@ -1,22 +1,44 @@
 "use client";
 
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
+
+const KEY = "auth_splash_shown_v1";
 
 export default function AuthSplashGate() {
   const [statusText, setStatusText] = useState("인증 확인중...");
-  const [phase, setPhase] = useState("active"); // active | leaving | done
+  const [phase, setPhase] = useState("boot"); // boot | active | leaving | done
 
+  // ✅ 첫 페인트 전에 결정: 이미 봤으면 done, 아니면 active
+  useLayoutEffect(() => {
+    try {
+      if (sessionStorage.getItem(KEY) === "1") {
+        setPhase("done");
+        return;
+      }
+      sessionStorage.setItem(KEY, "1");
+      setPhase("active");
+    } catch {
+      // sessionStorage 막힌 환경이면 일단 1회만 보여주자
+      setPhase("active");
+    }
+  }, []);
+
+  // 스플래시 동안만 스크롤 잠금
   useEffect(() => {
-    if (phase === "done") return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    if (phase === "active" || phase === "leaving") {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
   }, [phase]);
 
+  // ✅ 인증 체크는 active일 때만 1회
   useEffect(() => {
+    if (phase !== "active") return;
+
     let alive = true;
 
     (async () => {
@@ -51,15 +73,16 @@ export default function AuthSplashGate() {
         }
 
         setStatusText("인증 확인 실패. 새로고침 해주세요.");
+        setPhase("done");
       }
     })();
 
     return () => {
       alive = false;
     };
-  }, []);
+  }, [phase]);
 
-  if (phase === "done") return null;
+  if (phase === "boot" || phase === "done") return null;
 
   return (
     <div
