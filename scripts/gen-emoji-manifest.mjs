@@ -1,6 +1,7 @@
 // gen-emoji-manifest.mjs
 import { createReadStream, promises as fs } from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import sharp from "sharp";
 import unzipper from "unzipper";
 
@@ -9,6 +10,9 @@ const ZIP_PATH = path.join(ROOT, "public", "eve-emoji.zip"); // ZIP 위치
 const EMOJI_DIR = path.join(ROOT, "public", "eve-emoji"); // 원본 (gitignore)
 const THUMB_DIR = path.join(ROOT, "public", "eve-emoji-thumbs"); // 썸네일 (gitignore)
 const MANIFEST_PATH = path.join(ROOT, "public", "manifest.json"); // 추적 유지
+
+// ✅ 스킵 판정용 스탬프
+const STAMP_PATH = path.join(ROOT, ".cache", "emoji-stamp.json");
 
 const PNG_ONLY = true;
 const ALLOWED = PNG_ONLY ? /\.png$/i : /\.(png|jpg|jpeg|webp)$/i;
@@ -27,11 +31,36 @@ async function exists(p) {
     return false;
   }
 }
+async function isDir(p) {
+  try {
+    return (await fs.stat(p)).isDirectory();
+  } catch {
+    return false;
+  }
+}
 async function ensureDir(p) {
   await fs.mkdir(p, { recursive: true });
 }
 async function rmrf(p) {
   await fs.rm(p, { recursive: true, force: true });
+}
+
+async function sha256File(abs) {
+  const buf = await fs.readFile(abs);
+  return crypto.createHash("sha256").update(buf).digest("hex");
+}
+
+async function readStamp() {
+  try {
+    const s = await fs.readFile(STAMP_PATH, "utf8");
+    return JSON.parse(s);
+  } catch {
+    return null;
+  }
+}
+async function writeStamp(obj) {
+  await ensureDir(path.dirname(STAMP_PATH));
+  await fs.writeFile(STAMP_PATH, JSON.stringify(obj), "utf8");
 }
 
 async function extractZip(zipAbs, destDir) {
@@ -56,43 +85,32 @@ async function stripSingleTopLevelWrapper(dir) {
   }
 }
 
-// 디렉터리 재귀 탐색
+// ✅ (중복 push 버그 수정) 디렉터리 재귀 탐색
 async function walk(dir, relBase = "") {
   const out = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
 
   for (const ent of entries) {
     const abs = path.join(dir, ent.name);
-    const rel = path.join(relBase, ent.name).replace(/\\/g, "/"); // 윈도우 보정
+    const rel = path.join(relBase, ent.name).replace(/\\/g, "/");
+
     if (ent.isDirectory()) {
       out.push(...(await walk(abs, rel)));
-    } else if (ALLOWED.test(ent.name)) {
-      const segs = rel.split("/");
-      const filename = segs.pop();
-      const folders = segs;
-      out.push({
-        rel,
-        filename,
-        name: TITLE(filename),
-        folders,
-        depth: folders.length,
-      });
+      continue;
     }
 
     if (!ALLOWED.test(ent.name)) continue;
 
-    const segs = rel.split("/"); // ["함선","콩코드","배틀쉽","썬더차일드.png"]
+    const segs = rel.split("/");
     const filename = segs.pop();
-    const category = segs[0] || "etc";
-    const subpath = segs.slice(1); // ["콩코드","배틀쉽"] 또는 []
+    const folders = segs;
 
     out.push({
       rel, // 전체 경로 (파일 포함)
-      category, // 첫 폴더
-      subpath, // 나머지 폴더 배열
-      subcategory: subpath[0] ?? null, // 하위 호환 필드
-      filename, // 파일명
-      name: TITLE(filename), // 보기용 이름
+      filename,
+      name: TITLE(filename),
+      folders,
+      depth: folders.length,
     });
   }
 
@@ -102,6 +120,39 @@ async function walk(dir, relBase = "") {
 // ───────────────────────── main ─────────────────────────
 (async () => {
   try {
+    // 0) 입력 체크
+    if (!(await exists(ZIP_PATH))) {
+      console.error(`ZIP 파일이 없습니다: ${ZIP_PATH}`);
+      process.exit(1);
+    }
+
+    // ✅ 스킵 판정(입력 해시 + 생성물 존재)
+    const selfPath = path.join(ROOT, "scripts", "gen-emoji-manifest.mjs");
+    const inputs = {
+      zip: await sha256File(ZIP_PATH),
+      script: (await exists(selfPath)) ? await sha256File(selfPath) : null,
+      // PNG_ONLY/ALLOWED 같은 설정이 바뀌면 결과가 달라질 수 있으니 포함
+      pngOnly: PNG_ONLY,
+    };
+
+    const prev = await readStamp();
+
+    const outputsExist =
+      (await isDir(EMOJI_DIR)) &&
+      (await isDir(THUMB_DIR)) &&
+      (await exists(MANIFEST_PATH));
+
+    if (
+      prev &&
+      outputsExist &&
+      prev.zip === inputs.zip &&
+      prev.script === inputs.script &&
+      prev.pngOnly === inputs.pngOnly
+    ) {
+      console.log("⏭️  [gen:emoji] unchanged. skip");
+      process.exit(0);
+    }
+
     // 1) thumbs 삭제
     console.log("🧹 1/5 remove thumbs:", THUMB_DIR);
     await rmrf(THUMB_DIR);
@@ -115,10 +166,6 @@ async function walk(dir, relBase = "") {
     await fs.rm(MANIFEST_PATH, { force: true });
 
     // 4) ZIP 압축 해제 → eve-emoji
-    if (!(await exists(ZIP_PATH))) {
-      console.error(`ZIP 파일이 없습니다: ${ZIP_PATH}`);
-      process.exit(1);
-    }
     console.log("📦 4/5 unzip:", ZIP_PATH, "→", EMOJI_DIR);
     await extractZip(ZIP_PATH, EMOJI_DIR);
     await stripSingleTopLevelWrapper(EMOJI_DIR);
@@ -150,6 +197,9 @@ async function walk(dir, relBase = "") {
     await ensureDir(path.dirname(MANIFEST_PATH));
     await fs.writeFile(MANIFEST_PATH, JSON.stringify(out, null, 2), "utf8");
     console.log(`✅ 완료: ${MANIFEST_PATH} (${out.length} 개)`);
+
+    // ✅ 성공 시 스탬프 저장
+    await writeStamp(inputs);
   } catch (err) {
     console.error("❌ 작업 중 오류:", err);
     process.exit(1);
