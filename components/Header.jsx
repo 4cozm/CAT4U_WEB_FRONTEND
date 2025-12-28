@@ -4,7 +4,7 @@ import { useAuth } from "@/components/AuthProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react"; 
 import { FaUserCircle } from "react-icons/fa";
 import { MdClose, MdMenu } from "react-icons/md";
 import NavLink from "./NavLink";
@@ -31,12 +31,36 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (e) => {
+      const el = wrapRef.current;
+      if (!el) return;
+      if (!el.contains(e.target)) setOpen(false);
+    };
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   const showProfileImage = !loadingMe && me?.ok && me?.portrait && !imgError;
 
   return (
     <header className={shell}>
       <div className={container}>
-        <div className={card}>
+        <div ref={wrapRef} className={card}>
           <div className={`${row} relative`}>
             {/* Left */}
             <div className="flex items-center gap-2">
@@ -64,7 +88,7 @@ export default function Header() {
               ))}
             </nav>
 
-            {/* Center: 모바일 전용 텍스트 브랜드 (항상 렌더) */}
+            {/* Center: 모바일 전용 텍스트 브랜드 */}
             <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <Link
                 href="/"
