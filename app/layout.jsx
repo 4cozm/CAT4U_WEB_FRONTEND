@@ -22,8 +22,8 @@ export const metadata = {
     images: [
       {
         url: "/og/newYear.webp",
-        width: 1200,
-        height: 630,
+        width: 1229,
+        height: 819,
         alt: "대물캣 커뮤니티",
       },
     ],
