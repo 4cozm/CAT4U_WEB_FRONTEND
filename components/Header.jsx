@@ -55,7 +55,16 @@ export default function Header() {
               </Link>
             </div>
 
-            {/* ✅ Center (mobile only): independent from left/right */}
+            {/* Center: Nav (md+) */}
+            <nav className="hidden md:flex items-center justify-center gap-6 text-[var(--text)]" aria-label="주 메뉴">
+              {NAV.map((item) => (
+                <NavLink key={item.href} href={item.href} current={pathname === item.href}>
+                  {item.label}
+                </NavLink>
+              ))}
+            </nav>
+
+            {/* Center: 모바일 전용 텍스트 브랜드 (항상 렌더) */}
             <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <Link
                 href="/"
@@ -64,15 +73,6 @@ export default function Header() {
                 대물캣 커뮤니티
               </Link>
             </div>
-
-            {/* Center nav (md+) */}
-            <nav className="hidden md:flex items-center justify-center gap-6 text-[var(--text)]" aria-label="주 메뉴">
-              {NAV.map((item) => (
-                <NavLink key={item.href} href={item.href} current={pathname === item.href}>
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
 
             {/* Right */}
             <div className="flex items-center justify-end gap-2 shrink-0">
