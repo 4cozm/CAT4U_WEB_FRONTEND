@@ -5,22 +5,27 @@
  * @returns
  */
 export async function fetchWithAuth(url, options = {}) {
+  const { redirectOn401 = true, on401 } = options;
+
   const res = await fetch(url, { credentials: "include", ...options });
 
   if (res.status === 401) {
-    const loginRes = await fetch("/api/esi/login", { credentials: "include" });
-    const { url: loginUrl } = await loginRes.json();
+    if (on401) await on401(); // UI 메시지, 스플래시 상태 변경 등
 
-    // 최종 OAuth2 URL로 이동
-    window.location.href = loginUrl;
-    throw new Error("Unauthorized");
+    if (redirectOn401) {
+      const loginRes = await fetch("/api/esi/login", { credentials: "include" });
+      const { url: loginUrl } = await loginRes.json();
+      window.location.replace(loginUrl); // replace 권장
+    }
+
+    const e = new Error("Unauthorized");
+    e.code = 401;
+    throw e;
   }
 
   if (!res.ok) {
-    // 서버에서 보내준 에러 메시지를 읽으려고 시도합니다.
     const errorData = await res.json().catch(() => ({}));
-    const error = new Error(errorData.message || "서버 통신 중 오류가 발생했습니다.");
-    throw error;
+    throw new Error(errorData.message || "서버 통신 중 오류가 발생했습니다.");
   }
 
   return res.json();

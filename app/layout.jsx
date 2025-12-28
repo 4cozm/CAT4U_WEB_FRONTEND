@@ -4,6 +4,7 @@ import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";
 import "./globals.css";
+import AuthSplashGate from "@/components/AuthSplashGate.jsx";
 
 export const metadata = {
   metadataBase: new URL("https://community.catalyst-for-you.com"),
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
+        <AuthSplashGate/>
         <BackgroundVideo />
         <ClientProviders>
           <Header />
