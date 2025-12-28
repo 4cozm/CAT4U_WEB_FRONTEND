@@ -4,14 +4,11 @@ import { useToast } from "@/hooks/useToast";
 import { detectXssPatterns } from "@/utils/defenseXSS.js";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
-import { useParams, useSearchParams } from "next/navigation.js";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as yup from "yup";
 import BlockNoteRestore from "../../../components/BlockNoteRestore.jsx";
 import BlockNoteTempSave from "../../../components/BlockNoteTempSave.jsx";
-
-const DBG = true;
 
 const EditorHost = dynamic(() => import("@/app/BlockNote/EditorHost.jsx"), { ssr: false });
 
@@ -44,48 +41,142 @@ export default function PageClient() {
   const id = sp.get("id");
   const isEdit = edit === "1" && !!id;
 
+  const { pushToast } = useToast();
+
   const titleRef = useRef(null);
-  const editorRef = useRef(null); // getJSON 등 기존 코드 유지용
+  const editorRef = useRef(null);
 
-  // ✅ ref 준비 이벤트를 state로 승격
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [editorApi, setEditorApi] = useState(null);
-
-  // ✅ 콜백 ref: EditorHost가 늦게 ref를 채우더라도, 채우는 순간 setEditorApi로 이벤트 발생
   const editorRefCallback = useCallback((api) => {
     editorRef.current = api || null;
     setEditorApi(api || null);
-
-    if (DBG) {
-      console.log("[WRITE] editor ref callback", {
-        hasRef: !!api,
-        hasSetJSON: !!api?.setJSON,
-        hasGetJSON: !!api?.getJSON,
-      });
-    }
   }, []);
 
-  const { pushToast } = useToast();
-
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    if (DBG) console.log("[WRITE] mounted");
-    setMounted(true);
-  }, []);
-
-  const [initialBlocks, setInitialBlocks] = useState(null); // null = 아직 안 받아옴
+  const [initialBlocks, setInitialBlocks] = useState(null);
   const [loadingOriginal, setLoadingOriginal] = useState(false);
   const [loadError, setLoadError] = useState("");
 
+  // ===== Unsaved changes guard =====
+  const [dirty, setDirty] = useState(false);
+  const [trackEnabled, setTrackEnabled] = useState(false);
+  const hasGuardRef = useRef(false);
+
+  const confirmLeave = useCallback(() => {
+    return window.confirm("저장 안했는데 그냥 나가나옹?");
+  }, []);
+
+  const markDirty = useCallback(() => {
+    if (!trackEnabled) return;
+    setDirty(true);
+  }, [trackEnabled]);
+
+  const markDirtyKey = useCallback(
+    (e) => {
+      if (!trackEnabled) return;
+      const k = e.key;
+      if (k === "Enter" || k === "Backspace" || k === "Delete") setDirty(true);
+    },
+    [trackEnabled]
+  );
+
+  const onTitleChange = useCallback(() => markDirty(), [markDirty]);
+
+  // (A) 탭 닫기/새로고침/주소창 이동
+  useEffect(() => {
+    if (!dirty) return;
+
+    const onBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
+  // (B) 뒤로가기(popstate)
+  useEffect(() => {
+    if (!dirty) {
+      hasGuardRef.current = false;
+      return;
+    }
+
+    const current = window.location.href;
+
+    if (!hasGuardRef.current) {
+      history.pushState({ __guard: true }, "", current);
+      hasGuardRef.current = true;
+    }
+
+    const onPopState = () => {
+      const ok = confirmLeave();
+      if (ok) {
+        window.removeEventListener("popstate", onPopState);
+        history.back();
+      } else {
+        history.pushState({ __guard: true }, "", current);
+      }
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [dirty, confirmLeave]);
+
+  // (C) 내부 링크 클릭 가드(Next <Link> 포함)
+  useEffect(() => {
+    if (!dirty) return;
+
+    const onDocClick = (e) => {
+      // 새 탭 열기 같은 경우는 무시
+      if (e.defaultPrevented) return;
+      if (e.button !== 0) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      const a = e.target?.closest?.("a");
+      if (!a) return;
+
+      if (a.target && a.target !== "_self") return;
+      if (a.hasAttribute("download")) return;
+
+      const href = a.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+
+      let url;
+      try {
+        url = new URL(href, window.location.href);
+      } catch {
+        return;
+      }
+
+      // 외부 링크는 브라우저 기본 동작
+      if (url.origin !== window.location.origin) return;
+
+      const ok = confirmLeave();
+      if (!ok) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener("click", onDocClick, true);
+    return () => document.removeEventListener("click", onDocClick, true);
+  }, [dirty, confirmLeave]);
+
+  // ===== edit 모드: 원본 로드 =====
   useEffect(() => {
     if (!mounted) return;
     if (!isEdit) return;
 
     const url = `/api/board/detail?category=${encodeURIComponent(category)}&id=${encodeURIComponent(id)}`;
-    if (DBG) console.log("[WRITE] fetch start", url);
 
     let alive = true;
     setLoadingOriginal(true);
     setLoadError("");
+    setTrackEnabled(false);
+    setDirty(false);
 
     fetchWithAuth(url, { method: "GET" })
       .then((resp) => {
@@ -94,19 +185,9 @@ export default function PageClient() {
         const payload = resp?.data ?? resp;
         const board = payload?.data ?? payload;
 
-        if (DBG) {
-          console.log("[WRITE] fetch ok", {
-            title: board?.board_title,
-            contentType: typeof board?.board_content,
-            contentLen:
-              typeof board?.board_content === "string" ? board.board_content.length : board?.board_content?.length,
-          });
-        }
+        if (titleRef.current) titleRef.current.value = board?.board_title ?? "";
 
-        if (titleRef.current) titleRef.current.value = board.board_title ?? "";
-
-        // ✅ board_content가 문자열이면 파싱해서 배열로
-        let blocks = board.board_content ?? [];
+        let blocks = board?.board_content ?? [];
         if (typeof blocks === "string") {
           try {
             blocks = JSON.parse(blocks);
@@ -116,25 +197,19 @@ export default function PageClient() {
         }
         if (!Array.isArray(blocks)) blocks = [];
 
-        if (DBG) console.log("[WRITE] blocks parsed", blocks.length);
-
         setInitialBlocks(blocks);
       })
       .catch((err) => {
         if (!alive) return;
 
         const msg = err?.data?.message || err?.message || "원본 글 불러오기에 실패했습니다.";
-        if (DBG) console.log("[WRITE] fetch fail", { msg, err });
-
         setLoadError(msg);
         pushToast({ type: "error", message: msg });
 
-        // 로딩 화면에서 빠져나오게
         setInitialBlocks([]);
       })
       .finally(() => {
         if (!alive) return;
-        if (DBG) console.log("[WRITE] fetch finally");
         setLoadingOriginal(false);
       });
 
@@ -143,24 +218,25 @@ export default function PageClient() {
     };
   }, [mounted, isEdit, category, id, pushToast]);
 
-  // ✅ 주입: (initialBlocks 준비됨) + (editorApi 준비됨) 순간에만 실행됨
+  // ===== edit 모드: 주입 후부터 변경 감시 시작 =====
   useEffect(() => {
     if (!mounted) return;
-    if (!isEdit) return;
+
+    // 새 글 작성: 에디터 준비되면 바로 감시 시작
+    if (!isEdit) {
+      if (editorApi?.getJSON || editorApi?.setJSON) setTrackEnabled(true);
+      return;
+    }
+
+    // 수정: 원본 + editorApi 준비 후 주입, 그 다음 감시 시작
     if (initialBlocks === null) return;
     if (!editorApi?.setJSON) return;
 
-    if (DBG) console.log("[WRITE] inject", { blocksLen: initialBlocks.length });
-
     editorApi.setJSON(initialBlocks);
 
-    if (DBG) {
-      try {
-        console.log("[WRITE] inject done, current len", editorApi.getJSON?.()?.length);
-      } catch {
-        console.log("[WRITE] inject done (getJSON failed)");
-      }
-    }
+    // 주입으로 dirty 켜지는 거 방지: 주입 뒤에 감시 ON
+    setDirty(false);
+    setTrackEnabled(true);
   }, [mounted, isEdit, initialBlocks, editorApi]);
 
   const handleSave = async () => {
@@ -191,19 +267,26 @@ export default function PageClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       pushToast({
         type: "success",
-        message: isEdit ? "수정에 성공했습니다." : `게시글 : ${result.data.board_title} 생성에 성공하였습니다`,
+        message: isEdit
+          ? "수정에 성공했습니다."
+          : `게시글 : ${result?.data?.board_title ?? board_title} 생성에 성공하였습니다`,
       });
+
+      // 저장 성공 -> 이탈 가드 해제
+      setDirty(false);
+      setTrackEnabled(false);
 
       router.push(`/${category}`);
     } catch (err) {
-      const msg = err?.result?.message || err?.message || "서버 통신에 문제가 발생하였습니다.";
+      const msg = err?.data?.message || err?.message || "서버 통신에 문제가 발생하였습니다.";
       pushToast({ type: "error", message: msg });
     }
   };
 
-  const showEditor = mounted && (!isEdit || initialBlocks !== null); // edit면 원본 blocks 준비 후 렌더
+  const showEditor = mounted && (!isEdit || initialBlocks !== null);
 
   return (
     <section className="mx-auto flex max-w-3xl flex-col pt-4">
@@ -216,6 +299,7 @@ export default function PageClient() {
               const api = editorRef.current;
               if (!api?.setJSON) return;
               api.setJSON(doc);
+              markDirty();
             }}
           />
           <button
@@ -230,12 +314,20 @@ export default function PageClient() {
 
       <input
         ref={titleRef}
+        onChange={onTitleChange}
         type="text"
         placeholder="글 제목을 입력하세요"
         className="mb-4 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-base text-white placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-white/20"
       />
 
-      <div className="h-[60vh] overflow-visible rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur">
+      <div
+        className="h-[60vh] overflow-visible rounded-2xl bg-black/40 shadow-[0_8px_30px_rgb(0,0,0,0.25)] ring-1 ring-white/10 backdrop-blur"
+        onInput={markDirty}
+        onPaste={markDirty}
+        onCut={markDirty}
+        onDrop={markDirty}
+        onKeyDown={markDirtyKey}
+      >
         {isEdit && (loadingOriginal || loadError || initialBlocks === null) ? (
           <div className="p-4 text-white/70">
             {loadingOriginal
