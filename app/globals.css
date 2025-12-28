@@ -130,3 +130,12 @@ body {
 body {
   padding-top: var(--header-h);
 }
+/*사용자 웹 테마와 별개로 BlockNote의 글쓰기 블럭이 무조건 투명하도록 고정*/
+.ProseMirror.bn-editor {
+  background-color: transparent !important;
+}
+
+/*읽기 모드 블럭 글씨가 무조건 흰색이 되도록 변경*/
+.rounded-2xl.bg-white\/5.p-4 .bn-container {
+  color: white !important;
+}

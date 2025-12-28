@@ -1,5 +1,5 @@
 "use client";
-
+import { EDITOR_SHELL } from "@/style/uiClasses.js";
 import { useAuth } from "@/components/AuthProvider";
 import NeumorphicButton from "@/components/NeumorphicButton";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
@@ -211,7 +211,7 @@ export default function ReadClient({ category }) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-4">
+      <div className={`${EDITOR_SHELL} p-4`}>
         {mounted ? (
           <ReadOnlyEditor key={editorMountKey} blocks={blocks} />
         ) : (
