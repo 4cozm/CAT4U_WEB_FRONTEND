@@ -1,7 +1,7 @@
 "use client";
-
 import { useAuth } from "@/components/AuthProvider";
 import NeumorphicButton from "@/components/NeumorphicButton";
+import { EDITOR_SHELL } from "@/style/uiClasses.js";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
@@ -160,13 +160,23 @@ export default function ReadClient({ category }) {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-        <div className="flex items-start justify-between gap-3">
+        {/* 모바일: 세로(stack) / sm 이상: 가로(row) */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-bold text-white">
+            {/* 모바일: 줄바꿈 허용(제목 안 가리게) / sm 이상: 한 줄 + truncate */}
+            <h1
+              className="
+                font-bold text-white
+                whitespace-normal break-words
+                [font-size:clamp(1.05rem,3.8vw,1.6rem)]
+                leading-snug
+              "
+            >
               {isLoading ? "불러오는 중..." : title || "제목 없음"}
             </h1>
 
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/70">
+            {/* 모바일: 2열 그리드로 공간 효율 / sm 이상: 기존 flex wrap */}
+            <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm text-white/70 sm:flex sm:flex-wrap sm:items-center">
               <span>
                 작성자: <span className="text-white/90">{isLoading ? "-" : nickname || "-"}</span>
               </span>
@@ -179,19 +189,20 @@ export default function ReadClient({ category }) {
               <span>
                 수정일: <span className="text-white/90">{isLoading ? "-" : updatedAt}</span>
               </span>
+
               {!!lastEditor && !isLoading && (
-                <span>
+                // 모바일에서 2칸 다 먹게 해서 잘림 방지
+                <span className="col-span-2 sm:col-auto">
                   마지막 수정자: <span className="text-white/90">{lastEditor}</span>
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            {/* 추천 버튼은 항상 노출 */}
+          {/* 버튼: 모바일에서는 아래 줄에서 우측 정렬 / sm 이상에서는 오른쪽 영역 */}
+          <div className="flex flex-wrap justify-end gap-2 sm:shrink-0 sm:items-center">
             <NeumorphicButton label="추천" onClick={handleRecommend} variant="primary" />
 
-            {/* 수정/삭제는 owner 또는 admin만 */}
             {canEdit && (
               <>
                 <NeumorphicButton
@@ -211,7 +222,7 @@ export default function ReadClient({ category }) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/5 p-4">
+      <div className={`${EDITOR_SHELL} p-4`}>
         {mounted ? (
           <ReadOnlyEditor key={editorMountKey} blocks={blocks} />
         ) : (

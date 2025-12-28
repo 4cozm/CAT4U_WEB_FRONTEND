@@ -1,3 +1,4 @@
+
 name: Build & Deploy (main)
 
 on:
@@ -16,7 +17,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: "npm"
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
@@ -30,11 +31,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-northeast-2
         run: |
-          # 1) HTML/문서류 포함 전체를 짧게 캐시
-          aws s3 sync ./out s3://cat4uweb/ --delete \
-            --cache-control "public,max-age=300,must-revalidate"
+          set -euo pipefail
 
-          # 2) 정적 자산을 길게 캐시(파일명 해시가 붙어 있으니 안전)
+          # 1) 해시 정적 자산을 먼저 1년 캐시로 업로드
           if [ -d "./out/_next/static" ]; then
             aws s3 cp ./out/_next/static/ s3://cat4uweb/_next/static/ --recursive \
               --metadata-directive REPLACE \
@@ -47,19 +46,27 @@ jobs:
               --cache-control "public,max-age=31536000,immutable"
           fi
 
-      - name: Invalidate CloudFront Cache
+          # 2) 나머지(HTML 등)만 5분 캐시로 sync
+          aws s3 sync ./out s3://cat4uweb/ --delete \
+            --exclude "_next/static/*" \
+            --exclude "assets/*" \
+            --cache-control "public,max-age=300,must-revalidate"
+
+      - name: Invalidate CloudFront Cache (minimal)
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_S3_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_S3_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: ap-northeast-2
-        run: aws cloudfront create-invalidation --distribution-id E15CALDAZ3RCDE --paths "/*"
+        run: |
+          set -euo pipefail
+          aws cloudfront create-invalidation --distribution-id E15CALDAZ3RCDE --paths "/" "/*/index.html"
 
-      # ✅ Discord 알림 (성공)
       - name: Notify Discord (Success, main)
         if: success()
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
+          set -euo pipefail
           SHA_SHORT="${GITHUB_SHA::7}"
           cat > payload.json <<'JSON'
           {
@@ -75,12 +82,12 @@ jobs:
           sed -i "s|\${RUN_URL}|https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}|g" payload.json
           curl -H "Content-Type: application/json" -X POST -d @payload.json "$WEBHOOK"
 
-      # ✅ Discord 알림 (실패)
       - name: Notify Discord (Failure, main)
         if: failure()
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
+          set -euo pipefail
           SHA_SHORT="${GITHUB_SHA::7}"
           cat > payload.json <<'JSON'
           {

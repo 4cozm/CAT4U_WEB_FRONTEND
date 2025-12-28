@@ -4,17 +4,45 @@ import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";
 import "./globals.css";
+import AuthSplashGate from "@/components/AuthSplashGate.jsx";
 
 export const metadata = {
-  title: "대물캣 커뮤니티",
-  description: "대구,물고기,캣포유의 EVE ONLINE 커뮤니티 사이트 입니다",
-  icons: { icon: "/favicon.png" },
+  metadataBase: new URL("https://community.catalyst-for-you.com"),
+  title: {
+    default: "대물캣 커뮤니티",
+    template: "%s | 대물캣 커뮤니티",
+  },
+  description: "EVE Online 커뮤니티",
+
+  openGraph: {
+    type: "website",
+    siteName: "대물캣 커뮤니티",
+    locale: "ko_KR",
+    title: "대물캣 커뮤니티",
+    description: "EVE Online 커뮤니티",
+    images: [
+      {
+        url: "/og/newYear.webp",
+        width: 1229,
+        height: 819,
+        alt: "대물캣 커뮤니티",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "대물캣 커뮤니티",
+    description: "EVE Online 커뮤니티",
+    images: ["/og/newYear.webp"],
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
+        <AuthSplashGate/>
         <BackgroundVideo />
         <ClientProviders>
           <Header />
