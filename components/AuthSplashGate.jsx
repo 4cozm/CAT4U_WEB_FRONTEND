@@ -1,15 +1,21 @@
 "use client";
 
-import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useAuth } from "@/components/AuthProvider.jsx";
+import { authEvents } from "@/utils/authEvent.js";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const KEY = "auth_splash_shown_v1";
 
 export default function AuthSplashGate() {
-  const [statusText, setStatusText] = useState("인증 확인중...");
-  const [phase, setPhase] = useState("boot"); // boot | active | leaving | done
+  const { me, loadingMe, meError } = useAuth();
 
-  // ✅ 첫 페인트 전에 결정: 이미 봤으면 done, 아니면 active
+  const [phase, setPhase] = useState("boot"); // boot | active | done
+  const [statusText, setStatusText] = useState("인증 확인중...");
+  const [redirecting, setRedirecting] = useState(false);
+
+  const redirectingRef = useRef(false);
+
+  // 스플래시를 "한 번만" 보여줄지 결정
   useLayoutEffect(() => {
     try {
       if (sessionStorage.getItem(KEY) === "1") {
@@ -19,82 +25,76 @@ export default function AuthSplashGate() {
       sessionStorage.setItem(KEY, "1");
       setPhase("active");
     } catch {
-      // sessionStorage 막힌 환경이면 일단 1회만 보여주자
       setPhase("active");
     }
   }, []);
 
-  // 스플래시 동안만 스크롤 잠금
+  // 오버레이 떠 있을 때만 스크롤 잠금
   useEffect(() => {
-    if (phase === "active" || phase === "leaving") {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
-  }, [phase]);
+    const showOverlay = phase === "active" || redirecting;
+    if (!showOverlay) return;
 
-  // ✅ 인증 체크는 active일 때만 1회
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [phase, redirecting]);
+
+  async function startLoginRedirect() {
+    if (redirectingRef.current) return;
+    redirectingRef.current = true;
+
+    setRedirecting(true);
+    setStatusText("EVE 로그인 페이지로 이동중...");
+
+    try {
+      const r = await fetch("/api/esi/login", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+      const j = await r.json().catch(() => null);
+      const url = j?.url;
+
+      if (url) window.location.replace(url);
+      else setStatusText("로그인 URL 생성 실패. 새로고침 해주세요.");
+    } catch {
+      setStatusText("로그인 URL 생성 실패. 새로고침 해주세요.");
+    }
+  }
+
+  // 401 이벤트 구독. 앱 전체에서 터지는 401을 여기서 1회 처리
+  useEffect(() => {
+    return authEvents.onUnauthorized(() => {
+      startLoginRedirect();
+    });
+  }, []);
+
+  // 초기 로딩 종료 후 상태에 따라 스플래시 마감 또는 로그인 이동
   useEffect(() => {
     if (phase !== "active") return;
+    if (loadingMe) return;
 
-    let alive = true;
+    if (me) {
+      setPhase("done");
+      return;
+    }
 
-    (async () => {
-      try {
-        await fetchWithAuth("/api/esi/me", { method: "GET", redirectOn401: false });
-        if (!alive) return;
-        setPhase("leaving");
-      } catch (e) {
-        if (!alive) return;
+    if (meError?.status === 401) {
+      startLoginRedirect();
+      return;
+    }
 
-        if (e?.status === 401) {
-          setStatusText("EVE 로그인 페이지로 이동중...");
+    // 다른 에러면 스플래시만 닫고 화면은 보여준다
+    setPhase("done");
+  }, [phase, loadingMe, me, meError]);
 
-          requestAnimationFrame(() => {
-            (async () => {
-              try {
-                const r = await fetch("/api/esi/login", {
-                  method: "GET",
-                  credentials: "include",
-                  cache: "no-store",
-                });
-                const { url } = await r.json();
-                if (url) window.location.replace(url);
-                else setStatusText("로그인 URL 생성 실패. 새로고침 해주세요.");
-              } catch {
-                setStatusText("로그인 URL 생성 실패. 새로고침 해주세요.");
-              }
-            })();
-          });
-
-          return;
-        }
-
-        setStatusText("인증 확인 실패. 새로고침 해주세요.");
-        setPhase("done");
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [phase]);
-
-  if (phase === "boot" || phase === "done") return null;
+  const showOverlay = (phase === "active" && loadingMe) || redirecting;
+  if (!showOverlay) return null;
 
   return (
-    <div
-      className={[
-        "fixed inset-0 z-[9999] flex flex-col items-center justify-center",
-        "splash-glass",
-        phase === "leaving" ? "splash-leave" : "",
-      ].join(" ")}
-      onAnimationEnd={(e) => {
-        if (e.animationName === "splashLift") setPhase("done");
-      }}
-    >
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center splash-glass">
       <div className="flex items-center justify-center gap-1">
         {["로", "딩", "중", ".", ".", "."].map((ch, i) => (
           <span key={i} className="loading-letter" style={{ animationDelay: `${i * 0.08}s` }}>
@@ -102,7 +102,6 @@ export default function AuthSplashGate() {
           </span>
         ))}
       </div>
-
       <div className="mt-8 text-white/90 text-sm">{statusText}</div>
     </div>
   );
