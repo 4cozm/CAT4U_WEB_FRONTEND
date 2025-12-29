@@ -1,12 +1,16 @@
 "use client";
 
-import { ToastProvider } from "@/components/ToastProvider";
 import AuthProvider from "@/components/AuthProvider";
+import { ToastProvider } from "@/components/ToastProvider";
+import AuthSplashGate from "./AuthSplashGate.jsx";
 
 export default function ClientProviders({ children }) {
   return (
     <ToastProvider>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <AuthSplashGate />
+        {children}
+      </AuthProvider>
     </ToastProvider>
   );
 }
