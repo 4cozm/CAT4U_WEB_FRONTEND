@@ -134,6 +134,35 @@ body {
   padding-top: var(--header-h);
 }
 
+/*사용자 웹 테마와 별개로 BlockNote의 글쓰기 블럭이 무조건 투명하도록 고정*/
+.ProseMirror.bn-editor {
+  background-color: transparent !important;
+}
+
+/*읽기 모드 블럭 글씨가 무조건 흰색이 되도록 변경*/
+.rounded-2xl.bg-white\/5.p-4 .bn-container {
+  color: white !important;
+}
+
+/* BlockNote writing mode text color fix */
+.bn-container,
+.bn-editor,
+.bn-editor * {
+  color: rgb(248 250 252) !important; /* 거의 흰색 */
+}
+
+/* placeholder(“내용을 입력…” 같은 회색) */
+.bn-editor [data-placeholder]::before {
+  color: rgb(148 163 184) !important;
+  opacity: 1 !important;
+}
+
+/* 링크는 구분되게 */
+.bn-editor a {
+  color: rgb(96 165 250) !important;
+}
+
+
 .splash-glass {
   background: radial-gradient(1200px 700px at 20% 20%, rgba(255, 255, 255, 0.06), transparent 60%),
     radial-gradient(900px 600px at 80% 30%, rgba(255, 255, 255, 0.04), transparent 55%),
