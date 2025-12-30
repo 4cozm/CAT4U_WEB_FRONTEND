@@ -162,7 +162,6 @@ body {
   color: rgb(96 165 250) !important;
 }
 
-
 .splash-glass {
   background: radial-gradient(1200px 700px at 20% 20%, rgba(255, 255, 255, 0.06), transparent 60%),
     radial-gradient(900px 600px at 80% 30%, rgba(255, 255, 255, 0.04), transparent 55%),
@@ -213,4 +212,29 @@ body {
     transform: translate3d(0, -16px, 0);
     opacity: 1;
   }
+}
+
+/* 1) wrapper: 전체 톤 */
+.bn-file-block-content-wrapper {
+  color: var(--text);
+}
+
+/* 2) 실제 버튼 박스: 직접 덮기 */
+.bn-file-block-content-wrapper .bn-add-file-button{
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+  border-radius: 12px;
+}
+
+/* hover에서 하얗게 돌아가는 걸 강제로 차단 */
+.bn-file-block-content-wrapper .bn-add-file-button:hover{
+  background: rgba(255,255,255,0.09) !important;
+  border-color: rgba(255,255,255,0.18) !important;
+  color: var(--text) !important;
+}
+
+/* 아이콘도 같이 밝게 튀면 이것도 */
+.bn-file-block-content-wrapper .bn-add-file-button:hover .bn-add-file-button-icon{
+  color: var(--muted) !important;
 }
