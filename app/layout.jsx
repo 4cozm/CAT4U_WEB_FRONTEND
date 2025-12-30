@@ -40,6 +40,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <meta name="color-scheme" content="dark" />
+      </head>
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <BackgroundVideo />
         <ClientProviders>
