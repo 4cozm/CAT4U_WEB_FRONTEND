@@ -69,7 +69,6 @@ export default function PostListClient({ categoryParam, categoryId }) {
 
   const rawPosts = data.posts ?? [];
 
-  // 서버 응답 -> UI에서 쓰기 좋은 형태로 변환
   const posts = rawPosts.map((p) => ({
     id: p.id,
     title: p.board_title ?? "제목 없음",
@@ -77,6 +76,7 @@ export default function PostListClient({ categoryParam, categoryId }) {
     createdAt: p.create_dt ?? "",
     corp: mapCorpName(p.user?.corp),
     recommendCnt: Number.isFinite(Number(p.recommend_cnt)) ? Number(p.recommend_cnt) : 0,
+    like: !!p.like,
   }));
 
   const totalPages = data.totalPages ?? 1;
@@ -109,7 +109,10 @@ export default function PostListClient({ categoryParam, categoryId }) {
                     )}
                   </div>
 
-                  <div className="shrink-0 rounded-lg bg-white/5 px-2 py-1 text-xs text-white/80">
+                  <div
+                    className={`shrink-0 rounded-lg px-2 py-1 text-xs transition`}
+                    title={post.like ? "마우스 치우라냥" : ""}
+                  >
                     👍 {post.recommendCnt}
                   </div>
                 </div>
