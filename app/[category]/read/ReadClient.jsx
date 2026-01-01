@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "@/components/AuthProvider";
 import NeumorphicButton from "@/components/NeumorphicButton";
+import { useToast } from "@/hooks/useToast";
 import { EDITOR_SHELL } from "@/style/uiClasses.js";
 import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import { useCreateBlockNote } from "@blocknote/react";
@@ -54,15 +55,17 @@ export default function ReadClient({ category }) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
+  const [liking, setLiking] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
+  const { pushToast } = useToast();
   const isInvalid = !id;
   const isLoading = !isInvalid && data === null;
 
   const title = data?.board_title ?? "";
   const nickname = data?.nickname ?? data?.user?.nickname ?? "";
   const recommendCnt = data?.recommend_cnt ?? 0;
+  const like = !!data?.like;
 
   // 백엔드가 내려주는 owner 플래그 기반
   const owner = !!data?.owner;
@@ -145,8 +148,37 @@ export default function ReadClient({ category }) {
     }
   };
 
-  const handleRecommend = () => {
-    alert("추천은 아직 연결 안 됨");
+  const handleRecommend = async () => {
+    if (!id || liking) return;
+
+    try {
+      setLiking(true);
+      setError("");
+
+      const resp = await fetchWithAuth(`/api/board/${encodeURIComponent(id)}/like`, {
+        method: "POST",
+      });
+
+      const payload = resp?.data ?? resp;
+      const likeNext = !!payload?.like;
+      pushToast({ type: "success", message: payload.message || "처리 완료" });
+      setData((prev) => {
+        if (!prev) return prev;
+
+        const prevLike = !!prev.like;
+        const prevCnt = Number(prev.recommend_cnt ?? 0);
+
+        const nextCnt = likeNext === prevLike ? prevCnt : likeNext ? prevCnt + 1 : Math.max(0, prevCnt - 1);
+
+        return { ...prev, like: likeNext, recommend_cnt: nextCnt };
+      });
+    } catch (e) {
+      const msg = String(e?.message || e);
+      setError(msg);
+      pushToast(`추천 처리 실패: ${msg}`);
+    } finally {
+      setLiking(false);
+    }
   };
 
   if (isInvalid) {
@@ -201,7 +233,18 @@ export default function ReadClient({ category }) {
 
           {/* 버튼: 모바일에서는 아래 줄에서 우측 정렬 / sm 이상에서는 오른쪽 영역 */}
           <div className="flex flex-wrap justify-end gap-2 sm:shrink-0 sm:items-center">
-            <NeumorphicButton label="추천" onClick={handleRecommend} variant="primary" />
+            <NeumorphicButton
+              onClick={handleRecommend}
+              variant="primary"
+              disabled={liking || isLoading}
+              className={[
+                "transition",
+                like
+                  ? "border border-white/30 bg-white/15 text-white"
+                  : "border border-white/10 bg-white/5 text-white/90 hover:bg-white/10",
+              ].join(" ")}
+              label={liking ? "처리중..." : like ? "👎 추천 취소" : "👍 추천"}
+            />
 
             {canEdit && (
               <>
