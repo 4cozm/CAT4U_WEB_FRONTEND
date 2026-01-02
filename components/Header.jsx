@@ -15,6 +15,7 @@ const NAV = [
   { href: "/doctrine", label: "독트린" },
   { href: "/fitting", label: "피팅" },
   { href: "/market", label: "장터" },
+  { href: "https://buymeacoffee.com/bonsai.game", label: "기부"},
 ];
 
 const shell = "fixed inset-x-0 top-0 z-50";
