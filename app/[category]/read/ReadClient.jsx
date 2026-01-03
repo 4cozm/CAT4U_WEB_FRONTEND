@@ -265,7 +265,7 @@ export default function ReadClient({ category }) {
         </div>
       </div>
 
-      <div className={`${EDITOR_SHELL} p-4`}>
+      <div className={`${EDITOR_SHELL} p-4 min-h-[280px] sm:min-h-[360px]`}>
         {mounted ? (
           <ReadOnlyEditor key={editorMountKey} blocks={blocks} />
         ) : (
