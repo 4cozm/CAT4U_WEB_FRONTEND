@@ -2,6 +2,7 @@ import { EDITOR_SHELL } from "@/style/uiClasses.js";
 import { getCategoryParams } from "@/utils/categoryPath.js";
 import { Suspense } from "react";
 import ReadClient from "./ReadClient";
+import CommentClient from "./CommentClient";
 
 export const generateStaticParams = getCategoryParams;
 
@@ -16,7 +17,10 @@ export default async function Page({ params }) {
         </div>
       }
     >
-      <ReadClient category={category} />
+      <>
+        <ReadClient category={category} />
+        <CommentClient category={category} />
+      </>
     </Suspense>
   );
 }
