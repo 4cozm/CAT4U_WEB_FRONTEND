@@ -182,15 +182,15 @@ export default function ReadClient({ category }) {
   };
 
   if (isInvalid) {
-    return <main className="mx-auto max-w-3xl px-4 py-8 text-white/70">잘못된 접근</main>;
+    return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">잘못된 접근</main>;
   }
 
   if (error) {
-    return <main className="mx-auto max-w-3xl px-4 py-8 text-white/70">불러오기 실패: {error}</main>;
+    return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">불러오기 실패: {error}</main>;
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-8">
+    <main className="mx-auto flex w-full max-w-6xl flex-col pt-4">
       <div className="mb-4 rounded-2xl border border-white/10 bg-white/5 p-4">
         {/* 모바일: 세로(stack) / sm 이상: 가로(row) */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-3">

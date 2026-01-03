@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
         <BackgroundVideo />
         <ClientProviders>
           <Header />
-          <main className="relative mx-auto max-w-5xl px-4 pb-24">{children}</main>
+          <main className="relative mx-auto max-w-7xl px-4 pb-24">{children}</main>
         </ClientProviders>
       </body>
     </html>
