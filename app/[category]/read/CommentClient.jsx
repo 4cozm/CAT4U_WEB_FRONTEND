@@ -191,7 +191,7 @@ export default function CommentClient() {
   }, [boardId]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 pb-24">
+    <div className="mx-auto flex w-full max-w-6xl flex-col pt-4">
       {/* ✅ 큰 테두리 카드 제거: 헤더만 두고 아래는 열어둔 느낌 */}
       <div className="mt-10">
         <div className="mb-3 flex items-end justify-between">

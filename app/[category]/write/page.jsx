@@ -11,7 +11,7 @@ export default async function WritePage({ params }) {
   return (
     <Suspense
       fallback={
-        <div className="mx-auto max-w-3xl px-4 py-8">
+        <div className="mx-auto flex w-full max-w-6xl flex-col pt-4">
           <div className={`${EDITOR_SHELL} p-4 text-white/70`}>불러오는 중...</div>
         </div>
       }

@@ -127,11 +127,19 @@ body {
 }
 
 :root {
-  --header-h: 88px; /* 실제 헤더 높이 */
+  --header-h: 88px;     /* 헤더 실제 높이 */
+  --header-gap: 18px;   /* 헤더 아래 숨 쉴 공간 */
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 96px;   /* 데스크탑에서 헤더가 더 크면 */
+    --header-gap: 22px;
+  }
 }
 
 body {
-  padding-top: var(--header-h);
+  padding-top: calc(var(--header-h) + var(--header-gap));
 }
 
 /*사용자 웹 테마와 별개로 BlockNote의 글쓰기 블럭이 무조건 투명하도록 고정*/
@@ -146,8 +154,7 @@ body {
 
 /* BlockNote writing mode text color fix */
 .bn-container,
-.bn-editor,
-.bn-editor * {
+.bn-editor {
   color: rgb(248 250 252) !important; /* 거의 흰색 */
 }
 
