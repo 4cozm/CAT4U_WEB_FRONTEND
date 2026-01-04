@@ -4,7 +4,7 @@ import { useAuth } from "@/components/AuthProvider";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react"; 
+import { useEffect, useRef, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { MdClose, MdMenu } from "react-icons/md";
 import NavLink from "./NavLink";
@@ -15,12 +15,22 @@ const NAV = [
   { href: "/doctrine", label: "독트린" },
   { href: "/fitting", label: "피팅" },
   { href: "/market", label: "장터" },
+  { href: "https://buymeacoffee.com/bonsai.game", label: "기부" },
+  { href: "https://discord.com/users/378543198953406464", label: "문의" },
 ];
 
 const shell = "fixed inset-x-0 top-0 z-50";
-const container = "mx-auto max-w-5xl px-4 py-3";
-const card = "glass rounded-2xl border border-white/40 bg-white/60 backdrop-blur-2xl";
-const row = "flex items-center justify-between px-4 py-3 md:grid md:grid-cols-3";
+
+// ✅ RootLayout과 폭 통일 (데스크탑 확장)
+const container = "mx-auto w-full max-w-7xl px-4 py-3";
+
+// ✅ 넓어졌을 때 더 ‘헤더 카드’답게 보이도록 약간 튜닝
+const card =
+  "glass rounded-2xl md:rounded-3xl border border-white/40 bg-white/60 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]";
+
+// ✅ row는 그대로 두되, 큰 화면에서 좌우 여백이 살짝 더 있으면 안정감 있음
+const row = "px-4 py-3 md:px-6 md:py-4 relative md:grid md:grid-cols-[1fr,auto,1fr] items-center";
+
 const mobilePanel = "md:hidden border-t border-white/50";
 const linkMobile = "link-underline rounded-xl px-3 py-2 text-base text-[var(--muted)] hover:text-[var(--primary)]";
 
@@ -74,13 +84,19 @@ export default function Header() {
                 {open ? <MdClose size={22} /> : <MdMenu size={22} />}
               </button>
 
-              <Link href="/" className="hidden md:inline-flex items-center">
+              <Link href="/" className="hidden md:inline-flex items-center gap-2">
                 <Image src="/favicon-origin.png" alt="CAT4U 로고" width={36} height={36} priority />
+                <span className="hidden lg:inline text-sm font-semibold tracking-tight text-[var(--text)]">
+                  대물캣 커뮤니티
+                </span>
               </Link>
             </div>
 
             {/* Center: Nav (md+) */}
-            <nav className="hidden md:flex items-center justify-center gap-6 text-[var(--text)]" aria-label="주 메뉴">
+            <nav
+              className="hidden md:flex items-center justify-center gap-6 lg:gap-8 text-[var(--text)]"
+              aria-label="주 메뉴"
+            >
               {NAV.map((item) => (
                 <NavLink key={item.href} href={item.href} current={pathname === item.href}>
                   {item.label}

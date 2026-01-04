@@ -289,7 +289,7 @@ export default function PageClient() {
   const showEditor = mounted && (!isEdit || initialBlocks !== null);
 
   return (
-    <section className="mx-auto flex max-w-3xl flex-col pt-4">
+    <section className="mx-auto flex w-full max-w-6xl flex-col pt-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">{isEdit ? "글 수정" : "새 글 작성"}</h1>
         <div className="flex gap-2">
