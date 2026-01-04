@@ -117,7 +117,7 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
       const pos = editor.getTextCursorPosition?.();
       const cur = resolveBlockIdentifier(pos?.block);
       if (cur) return cur;
-    } catch (err){
+    } catch (err) {
       console.error(err);
     }
 
@@ -166,14 +166,14 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
         title: "이브 이모지 넣기",
         group: "Media",
         aliases: ["eve", "emoji", "이모지", triggerCharacter],
-        icon: <Image src="/eve-emoji.png" alt="EVE Emoji" width={18} height={18} />,
+        icon: <Image src="/slashMenuIcons/eve-emoji.png" alt="EVE Emoji" width={18} height={18} />,
         onItemClick: openPickerAfterCleanup,
       },
       {
-        title: "EVE Fit 임베드",
+        title: "피팅 임베드",
         group: "Media",
         aliases: ["fit", "eft", "피팅", "eveship"],
-        icon: <Image src="/eve-fitting-icon.webp" alt="EVE Emoji" width={18} height={18} />,
+        icon: <Image src="/slashMenuIcons/eve-fitting.webp" alt="EVE Emoji" width={18} height={18} />,
         onItemClick: insertFitAfterCleanup,
       },
     ],
@@ -208,7 +208,7 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
       if (ref) {
         try {
           editor.setTextCursorPosition?.(ref.id, "end");
-        } catch (err){
+        } catch (err) {
           console.error(err);
         }
       }
