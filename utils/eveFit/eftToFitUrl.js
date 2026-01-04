@@ -1,6 +1,5 @@
-// utils/eveFit/eftToFitUrl.js
-// 브라우저: CompressionStream(gzip) 사용 (Chrome/Edge 최신 OK)
-// 서버/노드(테스트용): node:zlib gzipSync fallback
+import { gzipSync, strToU8 } from "fflate";
+
 export async function eftToFitUrl(eftText, viewerBase = "https://eveship.fit/") {
   const text = normalizeEft(eftText);
 
@@ -41,27 +40,19 @@ function looksLikeEftMultiline(text) {
 }
 
 async function gzipUtf8(text) {
-  // 브라우저
-  if (typeof window !== "undefined" && typeof CompressionStream !== "undefined") {
-    const enc = new TextEncoder().encode(text);
-    const cs = new CompressionStream("gzip");
-    const stream = new Blob([enc]).stream().pipeThrough(cs);
-    const ab = await new Response(stream).arrayBuffer();
-    return new Uint8Array(ab);
-  }
-
-  // Node fallback (테스트/스크립트용)
-  const { gzipSync } = await import("node:zlib");
-  const buf = gzipSync(Buffer.from(text, "utf8"));
-  return new Uint8Array(buf);
+  return gzipSync(strToU8(text));
 }
 
 function bytesToBase64(bytes) {
-  // Uint8Array -> base64 (btoa는 binary string 필요)
-  let bin = "";
-  const chunk = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  // 브라우저
+  if (typeof btoa !== "undefined") {
+    let bin = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
   }
-  return btoa(bin);
+  // Node(테스트 등)
+  return Buffer.from(bytes).toString("base64");
 }
