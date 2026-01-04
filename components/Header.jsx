@@ -29,7 +29,7 @@ const card =
   "glass rounded-2xl md:rounded-3xl border border-white/40 bg-white/60 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]";
 
 // ✅ row는 그대로 두되, 큰 화면에서 좌우 여백이 살짝 더 있으면 안정감 있음
-const row = "flex items-center justify-between px-4 py-3 md:px-6 md:py-4 md:grid md:grid-cols-3";
+const row = "px-4 py-3 md:px-6 md:py-4 relative md:grid md:grid-cols-[1fr,auto,1fr] items-center";
 
 const mobilePanel = "md:hidden border-t border-white/50";
 const linkMobile = "link-underline rounded-xl px-3 py-2 text-base text-[var(--muted)] hover:text-[var(--primary)]";
