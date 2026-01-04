@@ -173,6 +173,7 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
         title: "EVE Fit 임베드",
         group: "Media",
         aliases: ["fit", "eft", "피팅", "eveship"],
+        icon: <Image src="/eve-fitting-icon.webp" alt="EVE Emoji" width={18} height={18} />,
         onItemClick: insertFitAfterCleanup,
       },
     ],
