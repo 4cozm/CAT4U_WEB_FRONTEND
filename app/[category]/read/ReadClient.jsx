@@ -30,17 +30,20 @@ function ReadOnlyEditor({ blocks }) {
   });
 
   return (
-    <BlockNoteView
-      editor={editor}
-      editable={false}
-      sideMenu={false}
-      slashMenu={false}
-      formattingToolbar={false}
-      linkToolbar={false}
-      filePanel={false}
-      tableHandles={false}
-      emojiPicker={false}
-    />
+    <div className="bn-scope">
+      <BlockNoteView
+        editor={editor}
+        editable={false}
+        sideMenu={false}
+        slashMenu={false}
+        formattingToolbar={false}
+        linkToolbar={false}
+        filePanel={false}
+        tableHandles={false}
+        emojiPicker={false}
+        className="!bg-transparent !p-0"
+      />
+    </div>
   );
 }
 
@@ -265,7 +268,13 @@ export default function ReadClient({ category }) {
         </div>
       </div>
 
-      <div className={`${EDITOR_SHELL} p-4 min-h-[280px] sm:min-h-[360px]`}>
+      <div
+        className={`
+    ${EDITOR_SHELL}
+    px-0 py-3 sm:p-4
+    min-h-[280px] sm:min-h-[360px]
+  `}
+      >
         {mounted ? (
           <ReadOnlyEditor key={editorMountKey} blocks={blocks} />
         ) : (
