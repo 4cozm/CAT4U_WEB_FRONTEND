@@ -7,7 +7,7 @@ import { fetchWithAuth } from "@/utils/fetchWithAuth.js";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { blockNoteSchema } from "../../../utils/blocknoteEmoji/schema.js";
 
 const FALLBACK_BLOCKS = [{ type: "paragraph", content: [] }];
@@ -80,6 +80,23 @@ export default function ReadClient({ category }) {
   const updatedAt = fmtKST(data?.updated_dt);
   const lastEditor = data?.last_editor_name ?? "";
 
+  const redirectedRef = useRef(false);
+  const [gone, setGone] = useState(false);
+
+  const kickOut = useCallback(
+    (msg) => {
+      if (redirectedRef.current) return;
+      redirectedRef.current = true;
+      setGone(true);
+
+      alert(msg || "삭제되었거나 존재하지 않는 글입니다.");
+
+      if (window.history.length > 1) router.back();
+      else router.push(`/${encodeURIComponent(category)}`);
+    },
+    [router, category]
+  );
+
   const blocks = useMemo(() => {
     const raw = data?.board_content;
     if (Array.isArray(raw) && raw.length > 0) return raw;
@@ -104,6 +121,8 @@ export default function ReadClient({ category }) {
     let alive = true;
     setError("");
     setData(null);
+    setGone(false);
+    redirectedRef.current = false;
 
     fetchWithAuth(`/api/board/detail?category=${encodeURIComponent(category)}&id=${encodeURIComponent(id)}`, {
       method: "GET",
@@ -112,17 +131,27 @@ export default function ReadClient({ category }) {
         if (!alive) return;
         const payload = resp?.data ?? resp;
         const board = payload?.data ?? payload;
+        if (!board) {
+          kickOut("삭제되었거나 존재하지 않는 글입니다.");
+          return;
+        }
         setData(board);
       })
       .catch((e) => {
         if (!alive) return;
+
+        if (e?.status === 404) {
+          kickOut("삭제되었거나 존재하지 않는 글입니다.");
+          return;
+        }
+
         setError(String(e?.message || e));
       });
 
     return () => {
       alive = false;
     };
-  }, [category, id]);
+  }, [category, id, kickOut]);
 
   const handleDelete = async () => {
     if (!id) return;
@@ -184,8 +213,13 @@ export default function ReadClient({ category }) {
     }
   };
 
+
   if (isInvalid) {
     return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">잘못된 접근</main>;
+  }
+
+    if (gone) {
+    return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">이동 중...</main>;
   }
 
   if (error) {
