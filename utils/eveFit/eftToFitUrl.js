@@ -25,18 +25,36 @@ function normalizeEft(input) {
     .trimEnd();
 }
 
-function looksLikeEftMultiline(text) {
-  if (!text) return false;
-  if (!text.includes("\n")) return false; // 멀티라인 체크
-  // 헤더 라인: [Ship, FitName]
-  if (!/^\s*\[[^\],]+,\s*[^\]]+\]\s*$/m.test(text)) return false;
-
-  const lines = text
+export function looksLikeEftMultiline(text) {
+  const lines = String(text ?? "")
+    .replace(/\r\n?/g, "\n")
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
 
-  return lines.length >= 4;
+  // 첫 줄이든 어디든, [ ... ] 와 콤마가 있는 라인을 헤더로 찾음
+  const headerLine = lines.find((line) => {
+    const s = line.indexOf("[");
+    const e = line.lastIndexOf("]");
+    if (s < 0 || e <= s) return false;
+    const inside = line.slice(s + 1, e);
+    return inside.includes(",");
+  });
+
+  if (!headerLine) return null;
+
+  const s = headerLine.indexOf("[");
+  const e = headerLine.lastIndexOf("]");
+  const inside = headerLine.slice(s + 1, e);
+
+  const commaIdx = inside.indexOf(",");
+  if (commaIdx <= 0) return null;
+
+  const ship = inside.slice(0, commaIdx).trim();
+  const fitName = inside.slice(commaIdx + 1).trim();
+  if (!ship || !fitName) return null;
+
+  return { ship, fitName };
 }
 
 async function gzipUtf8(text) {
