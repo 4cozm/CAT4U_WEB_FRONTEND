@@ -1,7 +1,10 @@
 "use client";
 
 import { BlockNoteView } from "@blocknote/shadcn";
+import { SuggestionMenuController, getDefaultReactSlashMenuItems } from "@blocknote/react";
+import { filterSuggestionItems } from "@blocknote/core/extensions";
 
+import { AIMenuController, getAISlashMenuItems } from "@blocknote/xl-ai";
 import EveEmojiMenu from "./menus/EveEmojiMenu.jsx";
 
 export default function EditorView({ editor }) {
@@ -14,7 +17,27 @@ export default function EditorView({ editor }) {
         px-0 py-3 sm:p-4
       "
     >
-      <BlockNoteView editor={editor} formattingToolbar={false} className="!bg-transparent !p-0">
+      <BlockNoteView
+        editor={editor}
+        formattingToolbar={false}
+        slashMenu={false}
+        className="!bg-transparent !p-0"
+      >
+        <AIMenuController />
+
+        <SuggestionMenuController
+          triggerCharacter="/"
+          getItems={async (query) => {
+            const allItems = [
+              ...getDefaultReactSlashMenuItems(editor),
+              ...getAISlashMenuItems(editor),
+            ];
+
+            // ✅ 공식 필터 유틸 (aliases/subtext 포함 매칭)
+            return filterSuggestionItems(allItems, query);
+          }}
+        />
+
         <EveEmojiMenu editor={editor} triggerCharacter=";" />
       </BlockNoteView>
     </div>

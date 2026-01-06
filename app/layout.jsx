@@ -3,7 +3,9 @@ import "@blocknote/shadcn/style.css";
 import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";
+import "@blocknote/xl-ai/style.css";
 import "./globals.css";
+
 
 export const metadata = {
   metadataBase: new URL("https://community.catalyst-for-you.com"),
