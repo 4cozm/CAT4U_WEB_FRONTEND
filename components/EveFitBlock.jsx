@@ -2,6 +2,7 @@
 
 import { eftToFitUrl } from "@/utils/eveFit/eftToFitUrl.js";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {looksLikeEftMultiline} from "@/utils/eveFit/eftToFitUrl.js"
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -28,23 +29,6 @@ function useResizeObserverWidth(ref) {
   return w;
 }
 
-// EFT 멀티라인인지 대충 검증 (eveship에서 깨지는 입력 방지)
-function looksLikeEftMultiline(text) {
-  if (!text) return false;
-  if (!/[\r\n]/.test(text)) return false;
-
-  // 헤더 라인: [Ship, Fit Name]
-  const header = text.match(/^\s*\[[^\],]+,\s*[^\]]+\]\s*$/m);
-  if (!header) return false;
-
-  const lines = text
-    .replace(/\r\n?/g, "\n")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  return lines.length >= 4;
-}
 
 async function readClipboardTextSafe() {
   // 표준 클립보드 API (HTTPS, 권한 필요)
