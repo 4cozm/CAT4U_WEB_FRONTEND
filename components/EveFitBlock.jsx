@@ -1,7 +1,7 @@
 "use client";
 
 import { eftToFitUrl, looksLikeEftMultiline } from "@/utils/eveFit/eftToFitUrl.js";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {  useLayoutEffect, useMemo, useRef, useState } from "react";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -91,11 +91,6 @@ function FitFrame({ src }) {
 export default function EveFitBlock({ block, editor }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [lastEft, setLastEft] = useState(block?.props?.eft || "");
-
-  useEffect(() => {
-    setLastEft(block?.props?.eft || "");
-  }, [block?.props?.eft]);
 
   const fitUrl = useMemo(() => block?.props?.fitUrl || "", [block?.props?.fitUrl]);
 
@@ -120,8 +115,6 @@ export default function EveFitBlock({ block, editor }) {
           fitUrl: url,
         },
       });
-
-      setLastEft(text);
     } catch (e) {
       setErr(e?.message || "fit 생성 실패");
     } finally {
@@ -181,7 +174,7 @@ export default function EveFitBlock({ block, editor }) {
             피팅 텍스트를 아래처럼 <span className="!text-red-300 font-semibold">복사</span>한 뒤 아래 버튼을 눌러라냥.
           </div>
           <div className="text-xs text-white/65 leading-relaxed">
-            [Vagabond, 랑조 뱃살 타격기]
+            [Vagabond, [연어]랑조 뱃살 타격기]
             <br />
             Assault Damage Control II
             <br />
