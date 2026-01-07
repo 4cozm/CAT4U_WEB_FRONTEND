@@ -11,12 +11,14 @@ import "@blocknote/xl-ai/style.css";
 import { useCreateBlockNote } from "@blocknote/react";
 import { DefaultChatTransport } from "ai";
 
+import { useToast } from "@/hooks/useToast.js";
 import { eveFitSpec } from "@/utils/blocknoteEmoji/eveFitSpec.js";
 import { uploadFile } from "@/utils/upload/uploadFile.js";
 import EditorView from "./EditorView";
 import inlineEmoji from "./components/InlineEmojiSpec";
 
 const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
+  const { pushToast } = useToast();
   const schema = React.useMemo(() => {
     return BlockNoteSchema.create({
       blockSpecs: {
@@ -49,12 +51,7 @@ const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
     return [{ type: "paragraph", content: [] }];
   }, [serverContent]);
 
-  const isDev = process.env.NEXT_PUBLIC_IS_DEV === "true";
-  const normalizeApi = (s) => (s.endsWith("/") ? s.slice(0, -1) : s);
-
-  const api = isDev
-    ? "/api/aiChat" // dev: rewrite 타게
-    : `${normalizeApi("localhost:3000")}/api/aiChat`; // prod: 절대 URL
+  const api = "/api/aiChat";
 
   const editor = useCreateBlockNote({
     schema,
@@ -93,13 +90,31 @@ const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
     const ai = editor.getExtension(AIExtension);
     if (!ai) return;
 
+    let prevMsg = null;
+
     const unsub = ai.store.subscribe(() => {
-      const s = ai.store.state.aiMenuState;
-      console.log("[AI] state =", s);
+      const state = ai.store.state;
+      const menu = state?.aiMenuState;
+      const raw = menu?.error?.message ?? state?.error?.message ?? null;
+
+      if (!raw) return;
+
+      let msg = raw;
+      try {
+        msg = JSON.parse(raw)?.message ?? raw;
+      } catch (err) {
+        console.error(err);
+      }
+
+      if (msg && msg !== prevMsg) {
+        prevMsg = msg;
+        pushToast({ type: "error", message: msg });
+        console.error("[AI ERROR]", msg);
+      }
     });
 
     return () => unsub?.();
-  }, [editor]);
+  }, [editor, pushToast]);
 
   useImperativeHandle(
     ref,
