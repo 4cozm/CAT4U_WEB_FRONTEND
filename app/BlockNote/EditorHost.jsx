@@ -61,7 +61,7 @@ const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
     dictionary,
     initialContent,
 
-    // ✅ 0.45 공식 방식: extensions에 AIExtension 등록 + transport 제공
+    //  0.45 공식 방식: extensions에 AIExtension 등록 + transport 제공
     extensions: [
       AIExtension({
         transport: new DefaultChatTransport({ api: api }),

@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { AIExtension, AIMenu, aiDocumentFormats, getDefaultAIMenuItems } from "@blocknote/xl-ai";
 import { MdAutoFixHigh, MdSpellcheck } from "react-icons/md";
 
@@ -12,7 +11,7 @@ export default function CatAIMenu() {
   return (
     <AIMenu
       items={(editor, aiResponseStatus) => {
-        // ✅ 커맨드 리스트가 보이는 상태일 때: 우리가 만든 2개만 보여주기
+        //  커맨드 리스트가 보이는 상태일 때: 우리가 만든 2개만 보여주기
         if (aiResponseStatus === "user-input") {
           const tidyWholeDoc = {
             key: "cat_tidy_doc",
@@ -67,7 +66,7 @@ export default function CatAIMenu() {
           return [tidyWholeDoc, fixSpelling];
         }
 
-        // ✅ thinking/ai-writing/user-reviewing(accept/reject) 등은 기본 UI 유지
+        //  thinking/ai-writing/user-reviewing(accept/reject) 등은 기본 UI 유지
         return getDefaultAIMenuItems(editor, aiResponseStatus);
       }}
     />

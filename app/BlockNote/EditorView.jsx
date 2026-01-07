@@ -26,7 +26,7 @@ export default function EditorView({ editor }) {
           getItems={async (query) => {
             const allItems = [...getDefaultReactSlashMenuItems(editor), ...getAISlashMenuItems(editor)];
 
-            // ✅ 공식 필터 유틸 (aliases/subtext 포함 매칭)
+            //  공식 필터 유틸 (aliases/subtext 포함 매칭)
             return filterSuggestionItems(allItems, query);
           }}
         />
