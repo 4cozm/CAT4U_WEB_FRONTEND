@@ -265,7 +265,8 @@ body {
     margin-inline: 0 !important;
   }
 }
-.bn-scope #bn-suggestion-menu,
+
+#bn-suggestion-menu,
 .bn-container #bn-suggestion-menu {
   background: var(--glass-strong) !important; /* 너가 이미 가진 glass 변수 */
   border: 1px solid var(--stroke-lite) !important;
@@ -274,12 +275,6 @@ body {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: var(--shadow);
-}
-
-/* 메뉴 아이템 hover/선택 느낌 (너 취향대로 수치만 조절) */
-.bn-scope #bn-suggestion-menu [role="option"][data-highlighted],
-.bn-scope #bn-suggestion-menu [role="option"]:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* AI prompt input: border/ring 완전 제거 */
@@ -295,4 +290,13 @@ body {
   border: 0 !important;
   outline: none !important;
   box-shadow: none !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"][data-highlighted="true"],
+.bn-scope #bn-suggestion-menu [role="option"][aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
