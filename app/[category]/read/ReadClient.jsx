@@ -8,7 +8,7 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/shadcn";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { blockNoteSchema } from "../../../utils/blocknoteEmoji/schema.js";
+import { createBlockNoteSchema } from "../../../utils/blocknoteEmoji/schema.js";
 
 const FALLBACK_BLOCKS = [{ type: "paragraph", content: [] }];
 
@@ -24,8 +24,10 @@ function fmtKST(dateLike) {
 }
 
 function ReadOnlyEditor({ blocks }) {
+  const schema = useMemo(() => createBlockNoteSchema(), []);
+
   const editor = useCreateBlockNote({
-    schema: blockNoteSchema,
+    schema,
     initialContent: blocks,
   });
 
@@ -213,12 +215,11 @@ export default function ReadClient({ category }) {
     }
   };
 
-
   if (isInvalid) {
     return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">잘못된 접근</main>;
   }
 
-    if (gone) {
+  if (gone) {
     return <main className="mx-auto flex w-full max-w-6xl flex-col pt-4 text-white/70">이동 중...</main>;
   }
 

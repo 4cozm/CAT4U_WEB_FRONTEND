@@ -4,7 +4,7 @@ import { BlockNoteSchema, defaultBlockSpecs, defaultInlineContentSpecs } from "@
 import { ko } from "@blocknote/core/locales";
 import React, { forwardRef, useImperativeHandle } from "react";
 
-import { AIExtension,aiDocumentFormats } from "@blocknote/xl-ai";
+import { AIExtension, aiDocumentFormats } from "@blocknote/xl-ai";
 import { ko as aiKo } from "@blocknote/xl-ai/locales";
 import "@blocknote/xl-ai/style.css";
 
@@ -54,7 +54,7 @@ const EditorHost = forwardRef(function EditorHost({ serverContent }, ref) {
 
   const api = isDev
     ? "/api/aiChat" // dev: rewrite 타게
-    : `${normalizeApi(apiBase)}/api/aiChat`; // prod: 절대 URL
+    : `${normalizeApi("localhost:3000")}/api/aiChat`; // prod: 절대 URL
 
   const editor = useCreateBlockNote({
     schema,
