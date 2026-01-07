@@ -1,7 +1,7 @@
 "use client";
 
-import { eftToFitUrl } from "@/utils/eveFit/eftToFitUrl.js";
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { eftToFitUrl, looksLikeEftMultiline } from "@/utils/eveFit/eftToFitUrl.js";
+import {  useLayoutEffect, useMemo, useRef, useState } from "react";
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -26,24 +26,6 @@ function useResizeObserverWidth(ref) {
   }, [ref]);
 
   return w;
-}
-
-// EFT 멀티라인인지 대충 검증 (eveship에서 깨지는 입력 방지)
-function looksLikeEftMultiline(text) {
-  if (!text) return false;
-  if (!/[\r\n]/.test(text)) return false;
-
-  // 헤더 라인: [Ship, Fit Name]
-  const header = text.match(/^\s*\[[^\],]+,\s*[^\]]+\]\s*$/m);
-  if (!header) return false;
-
-  const lines = text
-    .replace(/\r\n?/g, "\n")
-    .split("\n")
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  return lines.length >= 4;
 }
 
 async function readClipboardTextSafe() {
@@ -109,11 +91,6 @@ function FitFrame({ src }) {
 export default function EveFitBlock({ block, editor }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [lastEft, setLastEft] = useState(block?.props?.eft || "");
-
-  useEffect(() => {
-    setLastEft(block?.props?.eft || "");
-  }, [block?.props?.eft]);
 
   const fitUrl = useMemo(() => block?.props?.fitUrl || "", [block?.props?.fitUrl]);
 
@@ -138,8 +115,6 @@ export default function EveFitBlock({ block, editor }) {
           fitUrl: url,
         },
       });
-
-      setLastEft(text);
     } catch (e) {
       setErr(e?.message || "fit 생성 실패");
     } finally {
@@ -192,14 +167,14 @@ export default function EveFitBlock({ block, editor }) {
         </div>
       </div>
 
-      {/* ✅ 입력창 제거: 버튼만 */}
+      {/*  입력창 제거: 버튼만 */}
       {!fitUrl ? (
         <div className="mt-3 flex flex-col gap-2">
           <div className="text-xs text-white/65 leading-relaxed">
             피팅 텍스트를 아래처럼 <span className="!text-red-300 font-semibold">복사</span>한 뒤 아래 버튼을 눌러라냥.
           </div>
           <div className="text-xs text-white/65 leading-relaxed">
-            [Vagabond, 랑조 뱃살 타격기]
+            [Vagabond, [연어]랑조 뱃살 타격기]
             <br />
             Assault Damage Control II
             <br />
@@ -238,7 +213,7 @@ export default function EveFitBlock({ block, editor }) {
         </div>
       ) : (
         <>
-          {/* ✅ 데스크탑: 임베드 + (선택) 다시 불러오기 */}
+          {/*  데스크탑: 임베드 + (선택) 다시 불러오기 */}
           <div className="hidden md:block">
             <div className="mt-3 flex items-center gap-2">
               <button
@@ -257,7 +232,7 @@ export default function EveFitBlock({ block, editor }) {
             <FitFrame src={fitUrl} />
           </div>
 
-          {/* ✅ 모바일: 안내 */}
+          {/*  모바일: 안내 */}
           <div className="md:hidden mt-2 text-xs text-white/60">
             핸드폰은 코딱지 만하다옹.. 대신 <span className="text-white/80">“피팅 열기”</span>로 새 탭에서 확인해라냥.
           </div>

@@ -1,7 +1,39 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../node_modules/@blocknote/shadcn";
 
+@custom-variant dark (&:is(.dark *));
+/* =========================
+   Theme tokens
+========================= */
+:root {
+  --bg: #0b101a;
+
+  --glass: rgba(16, 20, 28, 0.55);
+  --glass-strong: rgba(16, 20, 28, 0.68);
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-lite: rgba(255, 255, 255, 0.2);
+  --shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+
+  --text: #e6edf7;
+  --muted: #9aa7b6;
+  --primary: #66b2ff;
+  --secondary: #3ddc97;
+  --accent: #ffb44d;
+
+  --header-h: 88px;
+  --header-gap: 18px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --header-h: 96px;
+    --header-gap: 22px;
+  }
+}
+
+/* =========================
+   Base
+========================= */
 .text-base-color {
   color: var(--text);
 }
@@ -11,28 +43,29 @@
 
 html,
 body {
-  /*사용자의 환경을 무조건 다크모드로 고정*/
+  /* 사용자의 환경과 무관하게 다크 고정 */
   color-scheme: dark;
 }
 
-:root {
-  /* 배경/유리 톤을 어두운 쪽으로 정리 */
-  --bg: #0b101a;
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Inter, system-ui,
+    sans-serif;
 
-  --glass: rgba(16, 20, 28, 0.55); /* 카드 */
-  --glass-strong: rgba(16, 20, 28, 0.68); /* 헤더 등 강조 */
-  --stroke: rgba(255, 255, 255, 0.1); /* 바깥 테두리 */
-  --stroke-lite: rgba(255, 255, 255, 0.2); /* 하이라이트 */
-  --shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-
-  --text: #e6edf7; /* 본문 */
-  --muted: #9aa7b6; /* 보조 텍스트 */
-  --primary: #66b2ff; /* 링크/액션 */
-  --secondary: #3ddc97;
-  --accent: #ffb44d;
+  overflow-x: hidden;
+  padding-top: calc(var(--header-h) + var(--header-gap));
 }
 
-/* --- 공통 글래스 유틸 (헤더/카드에 공통으로 사용) --- */
+/* 포커스 링 */
+:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--primary) 90%, transparent);
+  outline-offset: 3px;
+}
+
+/* =========================
+   Glass utilities
+========================= */
 .glass {
   background: var(--glass);
   border: 1px solid var(--stroke);
@@ -48,7 +81,6 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-/* backdrop-filter 미지원 브라우저(일부 모바일) 대비 */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass,
   .glass-strong {
@@ -56,22 +88,9 @@ body {
   }
 }
 
-/* 본문/배경은 기존 그대로 사용 */
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Inter, system-ui,
-    sans-serif;
-  overflow-x: hidden;
-}
-
-/* 포커스 링은 살짝 더 선명하게 */
-:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--primary) 90%, transparent);
-  outline-offset: 3px;
-}
-
-/* --- 버튼 톤을 다크 글래스에 맞춤 --- */
+/* =========================
+   Button / Link
+========================= */
 .btn-neu {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -89,86 +108,43 @@ body {
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.25), 0 4px 14px rgba(0, 0, 0, 0.28);
 }
 
-/* --- 링크 언더라인은 색만 살짝 차분하게 --- */
 .link-underline::after {
   background: linear-gradient(90deg, var(--primary), color-mix(in oklab, var(--primary) 60%, var(--secondary)));
   height: 2px;
 }
 
-/* 리스트 카드용 hover glow (다크 글래스 톤) */
+/* =========================
+   Hover effects
+========================= */
 .listcard-hover {
   transition: border-color 500ms ease-out, box-shadow 500ms ease-out;
 }
-
 .listcard-hover:hover {
-  /* 테두리 색만 살짝 올리고, 보더-글로우를 얇게 */
   border-color: var(--primary);
-  /* color-mix로 은은한 네온 느낌 */
   box-shadow: 0 0 12px color-mix(in oklab, var(--primary) 40%, transparent);
 }
 
-/* 내부 스크롤은 되지만 스크롤바는 보이지 않게 */
+/* =========================
+   Scrollbar (hide)
+========================= */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-/* 바깥 레이아웃 밀림 방지 */
-.scrollbar-none {
   scrollbar-gutter: stable both-edges;
 }
 
-/* 웹킷 기반 브라우저 (Chrome, Edge, Safari) */
+/* 웹킷 기반 브라우저 스크롤바 완전 숨김 */
 ::-webkit-scrollbar {
-  width: 0px; /* 세로 스크롤바 폭 */
-  height: 0px; /* 가로 스크롤바 높이 */
+  width: 0px;
+  height: 0px;
 }
 
-:root {
-  --header-h: 88px;     /* 헤더 실제 높이 */
-  --header-gap: 18px;   /* 헤더 아래 숨 쉴 공간 */
-}
-
-@media (min-width: 768px) {
-  :root {
-    --header-h: 96px;   /* 데스크탑에서 헤더가 더 크면 */
-    --header-gap: 22px;
-  }
-}
-
-body {
-  padding-top: calc(var(--header-h) + var(--header-gap));
-}
-
-/*사용자 웹 테마와 별개로 BlockNote의 글쓰기 블럭이 무조건 투명하도록 고정*/
-.ProseMirror.bn-editor {
-  background-color: transparent !important;
-}
-
-/*읽기 모드 블럭 글씨가 무조건 흰색이 되도록 변경*/
-.rounded-2xl.bg-white\/5.p-4 .bn-container {
-  color: white !important;
-}
-
-/* BlockNote writing mode text color fix */
-.bn-container,
-.bn-editor {
-  color: rgb(248 250 252) !important; /* 거의 흰색 */
-}
-
-/* placeholder(“내용을 입력…” 같은 회색) */
-.bn-editor [data-placeholder]::before {
-  color: rgb(148 163 184) !important;
-  opacity: 1 !important;
-}
-
-/* 링크는 구분되게 */
-.bn-editor a {
-  color: rgb(96 165 250) !important;
-}
-
+/* =========================
+   Splash / Loading
+========================= */
 .splash-glass {
   background: radial-gradient(1200px 700px at 20% 20%, rgba(255, 255, 255, 0.06), transparent 60%),
     radial-gradient(900px 600px at 80% 30%, rgba(255, 255, 255, 0.04), transparent 55%),
@@ -188,7 +164,6 @@ body {
     opacity: 1;
   }
 }
-
 .splash-leave {
   animation: splashLift 0.7s ease-in-out forwards;
 }
@@ -221,27 +196,107 @@ body {
   }
 }
 
-/* 1) wrapper: 전체 톤 */
+/* =========================
+   BlockNote overrides
+========================= */
+/* 편집기 배경은 무조건 투명 */
+.ProseMirror.bn-editor {
+  background-color: transparent !important;
+}
+
+/* 글자색(작성/읽기 공통) */
+.bn-container,
+.bn-editor {
+  color: rgb(248 250 252) !important;
+}
+
+/* placeholder */
+.bn-editor [data-placeholder]::before {
+  color: rgb(148 163 184) !important;
+  opacity: 1 !important;
+}
+
+/* 링크 */
+.bn-editor a {
+  color: rgb(96 165 250) !important;
+}
+
+/* 읽기 모드 카드 안의 컨테이너 글씨 흰색 강제 (이건 애매하지만 유지) */
+.rounded-2xl.bg-white\/5.p-4 .bn-container {
+  color: white !important;
+}
+
+/* 파일 업로드 버튼 톤 */
 .bn-file-block-content-wrapper {
   color: var(--text);
 }
-
-/* 2) 실제 버튼 박스: 직접 덮기 */
-.bn-file-block-content-wrapper .bn-add-file-button{
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
+.bn-file-block-content-wrapper .bn-add-file-button {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: var(--text);
   border-radius: 12px;
 }
-
-/* hover에서 하얗게 돌아가는 걸 강제로 차단 */
-.bn-file-block-content-wrapper .bn-add-file-button:hover{
-  background: rgba(255,255,255,0.09) !important;
-  border-color: rgba(255,255,255,0.18) !important;
+.bn-file-block-content-wrapper .bn-add-file-button:hover {
+  background: rgba(255, 255, 255, 0.09) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
   color: var(--text) !important;
 }
-
-/* 아이콘도 같이 밝게 튀면 이것도 */
-.bn-file-block-content-wrapper .bn-add-file-button:hover .bn-add-file-button-icon{
+.bn-file-block-content-wrapper .bn-add-file-button:hover .bn-add-file-button-icon {
   color: var(--muted) !important;
+}
+
+/* 선택(파란 링) 제거: 자식까지 */
+.bn-scope .bn-block-content.ProseMirror-selectednode,
+.bn-scope .bn-block-content.ProseMirror-selectednode > *,
+.bn-scope .ProseMirror-selectednode > .bn-block-content,
+.bn-scope .ProseMirror-selectednode > .bn-block-content > * {
+  outline: none !important;
+  outline-color: transparent !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* 모바일: bn-default-styles가 넣는 좌우 54px 패딩 제거 */
+@media (max-width: 639px) {
+  .bn-scope .bn-editor.bn-default-styles {
+    padding-inline: 15px !important; /* 한 줄로 통일 */
+    max-width: none !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
+  }
+}
+
+#bn-suggestion-menu,
+.bn-container #bn-suggestion-menu {
+  background: var(--glass-strong) !important; /* 너가 이미 가진 glass 변수 */
+  border: 1px solid var(--stroke-lite) !important;
+  color: var(--text) !important;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+/* AI prompt input: border/ring 완전 제거 */
+.bn-scope input[name="ai-prompt"].bn-combobox-input {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important; /* ring도 결국 box-shadow라 같이 제거 */
+}
+
+/* 포커스 때도 제거 */
+.bn-scope input[name="ai-prompt"].bn-combobox-input:focus,
+.bn-scope input[name="ai-prompt"].bn-combobox-input:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"][data-highlighted="true"],
+.bn-scope #bn-suggestion-menu [role="option"][aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }
