@@ -16,7 +16,7 @@ export default async function WritePage({ params }) {
         </div>
       }
     >
-      <PageClient category={category} />;
+      <PageClient category={category} />
     </Suspense>
   );
 }
