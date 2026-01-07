@@ -65,7 +65,7 @@ export default function HomeFeedClient() {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const json = await res.json(); // ✅ 백엔드가 { latest, top, yyyymm } 그대로 반환
+        const json = await res.json(); //  백엔드가 { latest, top, yyyymm } 그대로 반환
 
         const latest = Array.isArray(json?.latest) ? json.latest.slice(0, 5) : [];
         const top = Array.isArray(json?.top) ? json.top.slice(0, 5) : [];

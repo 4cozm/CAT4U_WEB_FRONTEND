@@ -1,7 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@source "../node_modules/@blocknote/shadcn";
 
+@custom-variant dark (&:is(.dark *));
 /* =========================
    Theme tokens
 ========================= */
@@ -264,4 +264,39 @@ body {
     width: 100% !important;
     margin-inline: 0 !important;
   }
+}
+
+#bn-suggestion-menu,
+.bn-container #bn-suggestion-menu {
+  background: var(--glass-strong) !important; /* 너가 이미 가진 glass 변수 */
+  border: 1px solid var(--stroke-lite) !important;
+  color: var(--text) !important;
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shadow);
+}
+
+/* AI prompt input: border/ring 완전 제거 */
+.bn-scope input[name="ai-prompt"].bn-combobox-input {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important; /* ring도 결국 box-shadow라 같이 제거 */
+}
+
+/* 포커스 때도 제거 */
+.bn-scope input[name="ai-prompt"].bn-combobox-input:focus,
+.bn-scope input[name="ai-prompt"].bn-combobox-input:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"][data-highlighted="true"],
+.bn-scope #bn-suggestion-menu [role="option"][aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.bn-scope #bn-suggestion-menu [role="option"]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
 }

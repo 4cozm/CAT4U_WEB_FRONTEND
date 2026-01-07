@@ -1,5 +1,6 @@
 import "@blocknote/core/style.css";
 import "@blocknote/shadcn/style.css";
+import "@blocknote/xl-ai/style.css";
 import ClientProviders from "../components/ClientProviders.jsx";
 import Header from "../components/Header";
 import BackgroundVideo from "./BackgroundVideo";
@@ -13,16 +14,15 @@ export const metadata = {
   },
   description: "EVE Online 커뮤니티",
 
-  // ✅ Android(PWA)용 manifest 연결
+  //  Android(PWA)용 manifest 연결
   manifest: "/manifest.webmanifest",
 
-  // ✅ iOS 홈화면 관련(최소)
+  //  iOS 홈화면 관련(최소)
   appleWebApp: {
     capable: true,
     title: "대물캣 커뮤니티",
     statusBarStyle: "black-translucent",
   },
-
 
   icons: {
     apple: "/images/PWA-icon.png",

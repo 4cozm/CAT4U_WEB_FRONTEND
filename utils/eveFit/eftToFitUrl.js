@@ -17,7 +17,7 @@ export async function eftToFitUrl(eftText, viewerBase = "https://eveship.fit/") 
 }
 
 function normalizeEft(input) {
-  // ✅ 줄바꿈을 "통일"만 하고 제거하지 않는다
+  //  줄바꿈을 "통일"만 하고 제거하지 않는다
   // trim()은 앞 공백까지 날릴 수 있어서, 여기선 trimEnd만 권장
   return String(input ?? "")
     .replace(/\r\n?/g, "\n")

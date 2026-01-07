@@ -1,8 +1,7 @@
 "use client";
 
-import { eftToFitUrl } from "@/utils/eveFit/eftToFitUrl.js";
+import { eftToFitUrl, looksLikeEftMultiline } from "@/utils/eveFit/eftToFitUrl.js";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import {looksLikeEftMultiline} from "@/utils/eveFit/eftToFitUrl.js"
 
 function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
@@ -28,7 +27,6 @@ function useResizeObserverWidth(ref) {
 
   return w;
 }
-
 
 async function readClipboardTextSafe() {
   // 표준 클립보드 API (HTTPS, 권한 필요)
@@ -176,7 +174,7 @@ export default function EveFitBlock({ block, editor }) {
         </div>
       </div>
 
-      {/* ✅ 입력창 제거: 버튼만 */}
+      {/*  입력창 제거: 버튼만 */}
       {!fitUrl ? (
         <div className="mt-3 flex flex-col gap-2">
           <div className="text-xs text-white/65 leading-relaxed">
@@ -222,7 +220,7 @@ export default function EveFitBlock({ block, editor }) {
         </div>
       ) : (
         <>
-          {/* ✅ 데스크탑: 임베드 + (선택) 다시 불러오기 */}
+          {/*  데스크탑: 임베드 + (선택) 다시 불러오기 */}
           <div className="hidden md:block">
             <div className="mt-3 flex items-center gap-2">
               <button
@@ -241,7 +239,7 @@ export default function EveFitBlock({ block, editor }) {
             <FitFrame src={fitUrl} />
           </div>
 
-          {/* ✅ 모바일: 안내 */}
+          {/*  모바일: 안내 */}
           <div className="md:hidden mt-2 text-xs text-white/60">
             핸드폰은 코딱지 만하다옹.. 대신 <span className="text-white/80">“피팅 열기”</span>로 새 탭에서 확인해라냥.
           </div>

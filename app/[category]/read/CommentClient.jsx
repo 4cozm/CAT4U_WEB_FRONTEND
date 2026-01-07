@@ -192,7 +192,7 @@ export default function CommentClient() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col pt-4">
-      {/* ✅ 큰 테두리 카드 제거: 헤더만 두고 아래는 열어둔 느낌 */}
+      {/*  큰 테두리 카드 제거: 헤더만 두고 아래는 열어둔 느낌 */}
       <div className="mt-10">
         <div className="mb-3 flex items-end justify-between">
           <div className="text-lg font-semibold text-white/90">댓글</div>
@@ -254,7 +254,7 @@ export default function CommentClient() {
                 const authorCharId = c?.user?.character_id ?? c?.user_id ?? null;
                 const portraitUrl = getPortraitUrl(authorCharId, 64);
 
-                // ✅ 오탐 방지: id 기반만
+                //  오탐 방지: id 기반만
                 const mine = myCharId && authorCharId && String(myCharId) === String(authorCharId);
 
                 return (
