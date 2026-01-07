@@ -21,14 +21,14 @@ const NAV = [
 
 const shell = "fixed inset-x-0 top-0 z-50";
 
-// ✅ RootLayout과 폭 통일 (데스크탑 확장)
+//  RootLayout과 폭 통일 (데스크탑 확장)
 const container = "mx-auto w-full max-w-7xl px-4 py-3";
 
-// ✅ 넓어졌을 때 더 ‘헤더 카드’답게 보이도록 약간 튜닝
+//  넓어졌을 때 더 ‘헤더 카드’답게 보이도록 약간 튜닝
 const card =
   "glass rounded-2xl md:rounded-3xl border border-white/40 bg-white/60 backdrop-blur-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]";
 
-// ✅ row는 그대로 두되, 큰 화면에서 좌우 여백이 살짝 더 있으면 안정감 있음
+//  row는 그대로 두되, 큰 화면에서 좌우 여백이 살짝 더 있으면 안정감 있음
 const row = "px-4 py-3 md:px-6 md:py-4 relative grid grid-cols-[1fr,auto,1fr] items-center";
 
 const mobilePanel = "md:hidden border-t border-white/50";

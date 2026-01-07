@@ -1,7 +1,7 @@
 // gen-emoji-manifest.mjs
+import crypto from "node:crypto";
 import { createReadStream, promises as fs } from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
 import sharp from "sharp";
 import unzipper from "unzipper";
 
@@ -11,7 +11,7 @@ const EMOJI_DIR = path.join(ROOT, "public", "eve-emoji"); // 원본 (gitignore)
 const THUMB_DIR = path.join(ROOT, "public", "eve-emoji-thumbs"); // 썸네일 (gitignore)
 const MANIFEST_PATH = path.join(ROOT, "public", "manifest.json"); // 추적 유지
 
-// ✅ 스킵 판정용 스탬프
+//  스킵 판정용 스탬프
 const STAMP_PATH = path.join(ROOT, ".cache", "emoji-stamp.json");
 
 const PNG_ONLY = true;
@@ -85,7 +85,7 @@ async function stripSingleTopLevelWrapper(dir) {
   }
 }
 
-// ✅ (중복 push 버그 수정) 디렉터리 재귀 탐색
+//  (중복 push 버그 수정) 디렉터리 재귀 탐색
 async function walk(dir, relBase = "") {
   const out = [];
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -126,7 +126,7 @@ async function walk(dir, relBase = "") {
       process.exit(1);
     }
 
-    // ✅ 스킵 판정(입력 해시 + 생성물 존재)
+    //  스킵 판정(입력 해시 + 생성물 존재)
     const selfPath = path.join(ROOT, "scripts", "gen-emoji-manifest.mjs");
     const inputs = {
       zip: await sha256File(ZIP_PATH),
@@ -137,10 +137,7 @@ async function walk(dir, relBase = "") {
 
     const prev = await readStamp();
 
-    const outputsExist =
-      (await isDir(EMOJI_DIR)) &&
-      (await isDir(THUMB_DIR)) &&
-      (await exists(MANIFEST_PATH));
+    const outputsExist = (await isDir(EMOJI_DIR)) && (await isDir(THUMB_DIR)) && (await exists(MANIFEST_PATH));
 
     if (
       prev &&
@@ -196,9 +193,9 @@ async function walk(dir, relBase = "") {
 
     await ensureDir(path.dirname(MANIFEST_PATH));
     await fs.writeFile(MANIFEST_PATH, JSON.stringify(out, null, 2), "utf8");
-    console.log(`✅ 완료: ${MANIFEST_PATH} (${out.length} 개)`);
+    console.log(` 완료: ${MANIFEST_PATH} (${out.length} 개)`);
 
-    // ✅ 성공 시 스탬프 저장
+    //  성공 시 스탬프 저장
     await writeStamp(inputs);
   } catch (err) {
     console.error("❌ 작업 중 오류:", err);

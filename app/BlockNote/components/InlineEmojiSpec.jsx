@@ -48,7 +48,7 @@ const inlineEmoji = createReactInlineContentSpec(emojiSpecDefinition, {
       );
     }
 
-    // ✅ 기본: 폰트 크기(1em) * scale + 3px
+    //  기본: 폰트 크기(1em) * scale + 3px
     return (
       <img
         src={src || FALLBACK_QUESTION_SVG}

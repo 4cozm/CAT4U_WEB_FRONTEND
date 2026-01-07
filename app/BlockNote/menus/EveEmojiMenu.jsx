@@ -7,15 +7,12 @@ import React from "react";
 import EmojiPicker from "../EmojiPicker.jsx";
 
 /**
- * ✅ 역할
  * - ; (triggerCharacter) 입력 → 메뉴 표시
  * - "이브 이모지 넣기" → 피커 열고 커서 위치에 emoji inline 삽입 (실패 시 image block 폴백)
  * - "EVE Fit 임베드" → eveFit block를 현재 커서 블럭 뒤(after)에 삽입
- *
- * ✅ 이번 fix의 핵심
  * - insertBlocks(referenceBlock)는 BlockIdentifier(string | Block)를 받지만,
  *   런타임에서 id→Block resolve가 흔들릴 수 있어 'isInGroup' 에러가 남.
- * - 따라서 우리가 editor.getBlock(...)로 "Block 객체"로 resolve해서 넣는다.
+ * - 따라서 editor.getBlock(...)로 "Block 객체"로 resolve해서 넣는다.
  */
 
 export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
@@ -97,7 +94,7 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
   );
 
   /**
-   * ✅ insertBlocks에 넣을 referenceBlock(Block 객체)을 확보
+   *  insertBlocks에 넣을 referenceBlock(Block 객체)을 확보
    * 우선순위:
    * 1) 저장된 커서 id(cursorBlockIdRef)
    * 2) 현재 커서 pos.block
@@ -128,7 +125,7 @@ export default function EveEmojiMenu({ editor, triggerCharacter = ";" }) {
   }, [editor, resolveBlockIdentifier]);
 
   /**
-   * ✅ EVE Fit 삽입 (한 틱 뒤 실행: 메뉴 클릭으로 selection이 흔들리는 타이밍 회피)
+   *  EVE Fit 삽입 (한 틱 뒤 실행: 메뉴 클릭으로 selection이 흔들리는 타이밍 회피)
    */
   const insertFitAfterCleanup = React.useCallback(() => {
     if (!editor) return;
